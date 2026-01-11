@@ -4,19 +4,34 @@ from enum import Enum
 class SourceType(Enum):
     OBJECT = 0,
     POSE_BONE = 1
+class SnapType(Enum):
+    LOCATION = 0,
+    RELATIVE = 1
+
+
+
+class ST_SnapElement(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(name="name", default="element")
 
 class ST_SnapSource(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(name="name", default="source")
+    # Type of source
     type: bpy.props.EnumProperty(
         items=[
-            (SourceType.OBJECT.name, SourceType.OBJECT.name, "Empty", "OBJECT_DATA", 0),
-            (SourceType.POSE_BONE.name, SourceType.POSE_BONE.name, "Empty", "POSE_HLT", 0),
+            (SourceType.OBJECT.name, "Object", "Empty", "OBJECT_DATA", 0),
+            (SourceType.POSE_BONE.name, "Armature", "Empty", "POSE_HLT", 1),
         ]
     )
-    snap_source_object: bpy.props.PointerProperty(
+    # The object containing the elements
+    source_object: bpy.props.PointerProperty(
         type=bpy.types.Object,
         name="Snap Object"
         )
+    # The final elements being snapped
+    elements: bpy.props.CollectionProperty(
+        type=ST_SnapElement,
+        name="Elements"
+    )
 
 class ST_Preset(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(name="name", default="preset")
@@ -26,7 +41,7 @@ class ST_Preset(bpy.types.PropertyGroup):
     )
     active_source_index: bpy.props.IntProperty(
         name="Active Source Index",
-        default=0
+        default=-1
     )
     relative_location: bpy.props.FloatVectorProperty(
         name="Relative Location",
@@ -47,7 +62,7 @@ class ST_PropertyGroup(bpy.types.PropertyGroup):
     presets: bpy.props.CollectionProperty(type=ST_Preset, name= "Presets")
     active_preset_index: bpy.props.IntProperty(
         name="Active Preset Index",
-        default=0
+        default=-1
     )
     relative_location: bpy.props.FloatVectorProperty(
         name="Relative Location",
@@ -60,6 +75,7 @@ class ST_PropertyGroup(bpy.types.PropertyGroup):
 
 
 _classes = [
+    ST_SnapElement,
     ST_SnapSource,
     ST_Preset,
     ST_PropertyGroup
