@@ -1,7 +1,9 @@
-from . import panel
+from . import gui_panel, gui_list
 
 def register():
-    panel.register()
+    gui_panel.register()
+    gui_list.register()
 
 def unregister():
-    panel.unregister()
+    gui_list.unregister()
+    gui_panel.unregister()

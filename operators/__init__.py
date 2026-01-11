@@ -1,8 +1,8 @@
-from . import ops
+from . import op_snap
 
 def register():
-    ops.register()
+    op_snap.register()
 
 def unregister():
-    ops.unregister()
+    op_snap.unregister()
 
