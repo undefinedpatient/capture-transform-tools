@@ -69,28 +69,7 @@ class ST_PT_snap_tools(bpy.types.Panel):
                 active_propname="active_source_index",
                 rows=2
             )
-        
-        
-        
         if active_source:
-            element_section = col_source_list
-            if active_source.source_object:
-                match active_source.type:
-                    case SourceType.OBJECT.name:
-                        pass
-                    case SourceType.POSE_BONE.name:
-                        row_elements = element_section.row()
-                        # List
-                        col_element_list = row_elements.column()
-                        col_element_list.template_list(
-                            listtype_name="ST_UL_snap_elements",
-                            list_id="element_list",
-                            dataptr=active_preset,
-                            propname="sources",
-                            active_dataptr=active_preset,
-                            active_propname="active_source_index",
-                            rows=2
-                        )
             col_source_list.prop(active_source, "source_object", text="")
 
         row_add_ops = col_source_list.row()
@@ -105,8 +84,28 @@ class ST_PT_snap_tools(bpy.types.Panel):
         col_sources_actions = row_sources.column()
         op_snap_source_add = col_sources_actions.operator(operator="snap_tools.snap_source_add", icon="ADD", text="")
         op_snap_source_remove = col_sources_actions.operator(operator="snap_tools.snap_source_remove", icon="REMOVE", text="")
-        source_section.separator(type="LINE")
+        source_section.separator()
 
+        element_section = preset_section
+        if active_source:
+            match active_source.type:
+                case SourceType.OBJECT.name:
+                    pass
+                case SourceType.POSE_BONE.name:
+                    element_section.label(icon="ARMATURE_DATA", text="Elements")
+                    row_elements = element_section.row()
+                    # List
+                    col_element_list = row_elements.column()
+                    col_element_list.template_list(
+                        listtype_name="ST_UL_snap_sources",
+                        list_id="source_list",
+                        dataptr=active_preset,
+                        propname="sources",
+                        active_dataptr=active_preset,
+                        active_propname="active_source_index",
+                        rows=2
+                    )
+        element_section.separator(type="LINE")
 
 
         #
