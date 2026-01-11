@@ -6,7 +6,9 @@ class SourceType(Enum):
     POSE_BONE = 1
 class SnapType(Enum):
     LOCATION = 0,
-    RELATIVE = 1
+    RELATIVE = 1,
+    CURSOR = 2,
+    CAMERA = 3
 
 def _on_snap_type_updated(self, context):
     pass

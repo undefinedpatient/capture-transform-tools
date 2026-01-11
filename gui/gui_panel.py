@@ -1,6 +1,6 @@
 import bpy
 from . import gui_list
-from ..properties import SourceType
+from ..properties import SourceType, SnapType
 class ST_PT_snap_tools(bpy.types.Panel):
     bl_space_type = "VIEW_3D"    
     bl_region_type = "UI"
@@ -67,59 +67,63 @@ class ST_PT_snap_tools(bpy.types.Panel):
                 propname="sources",
                 active_dataptr=active_preset,
                 active_propname="active_source_index",
-                rows=3  
+                rows=2
             )
+        
+        
+        
         if active_source:
+            element_section = col_source_list
+            if active_source.source_object:
+                match active_source.type:
+                    case SourceType.OBJECT.name:
+                        pass
+                    case SourceType.POSE_BONE.name:
+                        row_elements = element_section.row()
+                        # List
+                        col_element_list = row_elements.column()
+                        col_element_list.template_list(
+                            listtype_name="ST_UL_snap_elements",
+                            list_id="element_list",
+                            dataptr=active_preset,
+                            propname="sources",
+                            active_dataptr=active_preset,
+                            active_propname="active_source_index",
+                            rows=2
+                        )
             col_source_list.prop(active_source, "source_object", text="")
+
         row_add_ops = col_source_list.row()
         op_add_active = row_add_ops.operator(operator="snap_tools.snap_source_add_objects", text="Add Active")
         op_add_active.only_active = True
         op_add_selected = row_add_ops.operator(operator="snap_tools.snap_source_add_objects", text="Add Selected")
         op_add_selected.only_active = False
+        col_source_list.operator(operator="snap_tools.capture", text="Capture")
         col_source_list.operator(operator="snap_tools.apply_snap_to_source", text="Apply")
+
             # Column: List of actions
         col_sources_actions = row_sources.column()
         op_snap_source_add = col_sources_actions.operator(operator="snap_tools.snap_source_add", icon="ADD", text="")
         op_snap_source_remove = col_sources_actions.operator(operator="snap_tools.snap_source_remove", icon="REMOVE", text="")
         source_section.separator(type="LINE")
-        #
-        #   Sources Section
-        #
-
-        element_section = preset_section
-        if active_source:
-            match active_source.type:
-                case SourceType.OBJECT.name:
-                    pass
-                case SourceType.POSE_BONE.name:
-                    element_section.label(icon="ARMATURE_DATA", text="Elements")
-                    row_elements = element_section.row()
-                    # List
-                    col_element_list = row_elements.column()
-                    col_element_list.template_list(
-                        listtype_name="ST_UL_snap_sources",
-                        list_id="source_list",
-                        dataptr=active_preset,
-                        propname="sources",
-                        active_dataptr=active_preset,
-                        active_propname="active_source_index",
-                        rows=3  
-                    )
 
 
-        element_section.separator(type="LINE")
+
         #
         #   Edit Section
         #
-        edit_section = layout
-        
-        edit_section.label(icon="PRESET",text="Settings")
-        edit_section.label(text="Relative Location")
-        edit_section.prop(props, "relative_location", text="")
-        edit_section.label(text="Relative Object")
-        edit_section.prop(props, "relative_object", text="")
-        layout.operator(operator="snap_tools.snap")
-
+        if active_source:   
+            edit_section = layout
+            edit_section.label(icon="PRESET",text="Settings")
+            row_snap_type = edit_section.column_flow(columns=1)
+            row_snap_type.props_enum(active_source, "snap_type")
+            match active_source.snap_type:
+                case SnapType.LOCATION.name:
+                    edit_section.prop(props, "relative_location", text="")
+                case SnapType.RELATIVE.name:
+                    edit_section.prop(props, "relative_object", text="")
+        else:
+            layout.label(text="You need to pick a source")
 _classes = [
     ST_PT_snap_tools
 ]
