@@ -8,10 +8,20 @@ class SnapType(Enum):
     LOCATION = 0,
     RELATIVE = 1
 
-
-
-class ST_SnapElement(bpy.types.PropertyGroup):
+def _on_snap_type_updated(self, context):
+    pass
+class ST_SnapElement_Object(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(name="name", default="element")
+    element: bpy.props.PointerProperty(
+        type=bpy.types.Object,
+        name="object"
+    )
+
+class ST_SnapElement_PoseBone(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(name="name", default="element")
+    element: bpy.props.StringProperty(
+        name="bone"
+    )
 
 class ST_SnapSource(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(name="name", default="source")
@@ -20,6 +30,15 @@ class ST_SnapSource(bpy.types.PropertyGroup):
         items=[
             (SourceType.OBJECT.name, "Object", "Empty", "OBJECT_DATA", 0),
             (SourceType.POSE_BONE.name, "Armature", "Empty", "POSE_HLT", 1),
+        ],
+        update=_on_snap_type_updated 
+        # Everytime user update the snap type (e.g. "OBJECT" -> "POSE_BONE")
+    )
+    # Type of snapping, either absolute location in global space, or offset with objects
+    snap_type: bpy.props.EnumProperty(
+        items=[
+            (SnapType.LOCATION.name, "Location", "Empty", "ORIENTATION_GLOBAL", 0),
+            (SnapType.RELATIVE.name, "Relative", "Empty", "PIVOT_ACTIVE", 1),
         ]
     )
     # The object containing the elements
@@ -27,10 +46,14 @@ class ST_SnapSource(bpy.types.PropertyGroup):
         type=bpy.types.Object,
         name="Snap Object"
         )
-    # The final elements being snapped
-    elements: bpy.props.CollectionProperty(
-        type=ST_SnapElement,
-        name="Elements"
+
+    element_objects: bpy.props.CollectionProperty(
+        type=ST_SnapElement_Object,
+        name="Element Objects"
+    )
+    element_bones: bpy.props.CollectionProperty(
+        type=ST_SnapElement_PoseBone,
+        name="Elemenet Bones"
     )
 
 class ST_Preset(bpy.types.PropertyGroup):
@@ -75,7 +98,8 @@ class ST_PropertyGroup(bpy.types.PropertyGroup):
 
 
 _classes = [
-    ST_SnapElement,
+    ST_SnapElement_Object,
+    ST_SnapElement_PoseBone,
     ST_SnapSource,
     ST_Preset,
     ST_PropertyGroup

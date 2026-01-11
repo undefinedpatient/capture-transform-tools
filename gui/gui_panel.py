@@ -69,6 +69,8 @@ class ST_PT_snap_tools(bpy.types.Panel):
                 active_propname="active_source_index",
                 rows=3  
             )
+        if active_source:
+            col_source_list.prop(active_source, "source_object", text="")
         row_add_ops = col_source_list.row()
         op_add_active = row_add_ops.operator(operator="snap_tools.snap_source_add_objects", text="Add Active")
         op_add_active.only_active = True
@@ -110,6 +112,7 @@ class ST_PT_snap_tools(bpy.types.Panel):
         #   Edit Section
         #
         edit_section = layout
+        
         edit_section.label(icon="PRESET",text="Settings")
         edit_section.label(text="Relative Location")
         edit_section.prop(props, "relative_location", text="")
