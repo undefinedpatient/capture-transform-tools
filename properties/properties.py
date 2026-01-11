@@ -1,5 +1,18 @@
 import bpy
+from enum import Enum
+
+class SourceType(Enum):
+    OBJECT = 0,
+    POSE_BONE = 1
+
 class ST_SnapSource(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(name="name", default="source")
+    type: bpy.props.EnumProperty(
+        items=[
+            (SourceType.OBJECT.name, SourceType.OBJECT.name, "Empty", "OBJECT_DATA", 0),
+            (SourceType.POSE_BONE.name, SourceType.POSE_BONE.name, "Empty", "POSE_HLT", 0),
+        ]
+    )
     snap_source_object: bpy.props.PointerProperty(
         type=bpy.types.Object,
         name="Snap Object"
@@ -7,9 +20,13 @@ class ST_SnapSource(bpy.types.PropertyGroup):
 
 class ST_Preset(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(name="name", default="preset")
-    snap_sources: bpy.props.CollectionProperty(
+    sources: bpy.props.CollectionProperty(
         type=ST_SnapSource,
         name="Snap Objects"
+    )
+    active_source_index: bpy.props.IntProperty(
+        name="Active Source Index",
+        default=0
     )
     relative_location: bpy.props.FloatVectorProperty(
         name="Relative Location",
