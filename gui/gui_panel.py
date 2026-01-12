@@ -29,9 +29,9 @@ class ST_PT_snap_tools(bpy.types.Panel):
             rows=1
         )
         # Right Column contains the actions
-        col_presets_actions = row_presets.column()
-        op_snap_preset_add = col_presets_actions.operator(operator="snap_tools.snap_preset_add", icon="ADD", text="")
-        op_snap_preset_remove = col_presets_actions.operator(operator="snap_tools.snap_preset_remove", icon="REMOVE", text="")
+        col_preset_actions = row_presets.column()
+        op_snap_preset_add = col_preset_actions.operator(operator="snap_tools.snap_preset_add", icon="ADD", text="")
+        op_snap_preset_remove = col_preset_actions.operator(operator="snap_tools.snap_preset_remove", icon="REMOVE", text="")
         preset_section.separator(type="LINE")
 
     def draw_source_section(self, context):
@@ -72,10 +72,10 @@ class ST_PT_snap_tools(bpy.types.Panel):
             col_source_list.operator(operator="snap_tools.apply_snap_to_source", text="Apply")
 
             # Right Column contains +/-
-            col_sources_actions = row_sources.column()
-            op_snap_source_add = col_sources_actions.operator(operator="snap_tools.snap_source_add", icon="ADD", text="")
+            col_source_actions = row_sources.column()
+            op_snap_source_add = col_source_actions.operator(operator="snap_tools.snap_source_add", icon="ADD", text="")
             op_snap_source_add.is_blank = True
-            op_snap_source_remove = col_sources_actions.operator(operator="snap_tools.snap_source_remove", icon="REMOVE", text="")
+            op_snap_source_remove = col_source_actions.operator(operator="snap_tools.snap_source_remove", icon="REMOVE", text="")
             source_section.separator()
         else:
             return
@@ -85,21 +85,23 @@ class ST_PT_snap_tools(bpy.types.Panel):
         presets = props.presets
         active_index = props.active_preset_index
         active_preset = None if active_index == -1 else presets[active_index]
+
         if active_preset:
             active_source_index = active_preset.active_source_index
             active_source = None if active_source_index == -1 else active_preset.sources[active_source_index]
             if active_source:
                 layout = self.layout
+                row_element = layout.row()
                 match active_source.type:
                     case SourceType.OBJECT.name:
                         pass
                     case SourceType.POSE_BONE.name:
                         layout.label(icon="ARMATURE_DATA", text="Elements")
-                        row_elements = layout.row()
+                        row_element = layout.row()
                         # Left Column contains the element list
-                        col_element_list = row_elements.column()
+                        col_element_list = row_element.column()
                         col_element_list.template_list(
-                            listtype_name="ST_UL_snap_sources",
+                            listtype_name="ST_UL_snap_elements",
                             list_id="element_list",
                             dataptr=active_source,
                             propname="element_bones",
@@ -107,6 +109,9 @@ class ST_PT_snap_tools(bpy.types.Panel):
                             active_propname="active_element_index",
                             rows=3
                         )
+                        if active_source.active_element_index != -1:
+                            col_element_list.prop(active_source.element_bones[active_source.active_element_index], "name")
+                            # col_element_list.prop_search()
                         row_add_ops = col_element_list.row()
                         op_add_active = row_add_ops.operator(operator="snap_tools.snap_element_add", text="Add Active")
                         op_add_active.only_active = True
@@ -114,8 +119,13 @@ class ST_PT_snap_tools(bpy.types.Panel):
                         op_add_selected = row_add_ops.operator(operator="snap_tools.snap_element_add", text="Add Selected")
                         op_add_selected.only_active = False
                         op_add_selected.is_blank = False 
-                        # Right
     
+                        # Right Column contains +/-
+                        col_element_actions = row_element.column()
+                        op_snap_element_add = col_element_actions.operator(operator="snap_tools.snap_element_add", icon="ADD", text="")
+                        op_snap_element_add.is_blank = True
+                        op_snap_element_remove = col_element_actions.operator(operator="snap_tools.snap_element_remove", icon="REMOVE", text="")
+
     def draw_settings(self, context):
         props = context.scene.snap_tools_settings
         presets = props.presets
@@ -125,6 +135,7 @@ class ST_PT_snap_tools(bpy.types.Panel):
             active_source_index = active_preset.active_source_index
             active_source = None if active_source_index == -1 else active_preset.sources[active_source_index]
             layout = self.layout
+            layout.separator(type="LINE")
             if active_source:   
                 layout.label(icon="PRESET",text="Settings")
                 row_snap_type = layout.column_flow(columns=1)

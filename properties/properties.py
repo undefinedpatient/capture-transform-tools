@@ -52,7 +52,9 @@ class ST_SnapSource(bpy.types.PropertyGroup):
         name="Active Element Index",
         default=-1
     )
-
+    #
+    #   Elements
+    #
     element_objects: bpy.props.CollectionProperty(
         type=ST_SnapElement_Object,
         name="Element Objects"
@@ -66,7 +68,7 @@ class ST_Preset(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(name="name", default="preset")
     sources: bpy.props.CollectionProperty(
         type=ST_SnapSource,
-        name="Snap Objects"
+        name="Sources"
     )
     active_source_index: bpy.props.IntProperty(
         name="Active Source Index",

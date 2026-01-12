@@ -1,4 +1,5 @@
 import bpy
+from ..properties import SourceType, SnapType
 
 class ST_OT_snap(bpy.types.Operator):
     bl_idname = "snap_tools.snap"
@@ -61,9 +62,15 @@ class ST_OT_snap_element_add(bpy.types.Operator):
     # User should not be abled to select the type of element, so take it from scene
     def execute(self, context):
         props = context.scene.snap_tools_settings
-        match context.mode:
-            case "POSE":
-                print("add")
+        active_preset = props.presets[props.active_preset_index]
+        active_source = active_preset.sources[active_preset.active_source_index]
+        match active_source.type:
+            case SourceType.POSE_BONE.name:
+                if not self.is_blank:
+                    pass
+                else:
+                    active_source.element_bones.add()
+
         return {"FINISHED"}
 
 class ST_OT_snap_source_add(bpy.types.Operator):
