@@ -1,5 +1,6 @@
 import bpy
-from ..properties import SourceType
+
+from .types import SourceType
 
 def get_active_preset_index(context: bpy.types.Context) -> int:
     return context.scene.snap_tools_settings.active_preset_index
@@ -45,12 +46,24 @@ def get_active_element(context: bpy.types.Context):
             case SourceType.POSE_BONE.name:
                 return source.element_bones[get_active_element_index(context)]
             case _:
-                raise RuntimeError("Unknown Source Type")
+                raise RuntimeError("Unknown SourceType")
     else:
         raise RuntimeError("No active element!")
     
 
-
+def has_source_object(source)->bool:
+    return source.source_object != None
+def is_source_type_valid(source) -> bool:
+    """
+    In case user select "POSE_BONE" for non-armature object, have to check it
+    """
+    match source.type:
+        case SourceType.OBJECT.name:
+            return True
+        case SourceType.POSE_BONE.name:
+            return source.source_object.type == "ARMATURE"
+        case _:
+            raise RuntimeError("Unknow SourceType")
 
 def switch_source_type(source, target_type: SourceType):
     match target_type:
@@ -63,5 +76,5 @@ def switch_source_type(source, target_type: SourceType):
             if len(source.element_bones) <= source.active_element_index:
                 source.active_element_index = len(source.element_bones) - 1
         case _:
-            raise RuntimeError("Unknown source type!")
+            raise RuntimeError("Unknown SourceType!")
     source.type = target_type

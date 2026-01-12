@@ -1,26 +1,14 @@
 import bpy
-from enum import Enum
-
-class SourceType(Enum):
-    OBJECT = 0,
-    POSE_BONE = 1
-class SnapType(Enum):
-    LOCATION = 0,
-    RELATIVE = 1,
-    CURSOR = 2,
-    CAMERA = 3
-
-def _on_snap_type_updated(self, context):
-    pass
+from ..utilities import *
 class ST_SnapElement_Object(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty(name="name", default="element")
+    name: bpy.props.StringProperty(name="name", default="")
     element: bpy.props.PointerProperty(
         type=bpy.types.Object,
         name="object"
     )
 
 class ST_SnapElement_PoseBone(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty(name="name", default="element")
+    name: bpy.props.StringProperty(name="name", default="")
     element: bpy.props.StringProperty(
         name="bone"
     )
@@ -33,8 +21,6 @@ class ST_SnapSource(bpy.types.PropertyGroup):
             (SourceType.OBJECT.name, "Object", "Empty", "OBJECT_DATA", 0),
             (SourceType.POSE_BONE.name, "Armature", "Empty", "POSE_HLT", 1),
         ],
-        update=_on_snap_type_updated 
-        # Everytime user update the snap type (e.g. "OBJECT" -> "POSE_BONE")
     )
     # Type of snapping, either absolute location in global space, or offset with objects
     snap_type: bpy.props.EnumProperty(

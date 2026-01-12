@@ -1,5 +1,4 @@
 import bpy
-from ..properties import SourceType, SnapType
 from ..utilities import *
 
 class ST_OT_snap(bpy.types.Operator):
@@ -121,7 +120,7 @@ class ST_OT_snap_preset_remove(bpy.types.Operator):
         props.active_preset_index -= 1
         props.presets.remove(active_preset_index)
         return {"FINISHED"}
-
+    
 class ST_OT_snap_source_remove(bpy.types.Operator):
     bl_idname = "snap_tools.snap_source_remove"
     bl_label = "Snap Source Remove"

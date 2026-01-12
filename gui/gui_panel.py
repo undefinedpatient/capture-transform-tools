@@ -1,6 +1,4 @@
 import bpy
-from . import gui_list
-from ..properties import SourceType, SnapType
 from ..utilities import *
 class ST_PT_snap_tools(bpy.types.Panel):
     bl_space_type = "VIEW_3D"    
@@ -57,7 +55,10 @@ class ST_PT_snap_tools(bpy.types.Panel):
             )
             if has_active_source(context):
                 active_source = get_active_source(context)
-                col_source_list.prop(active_source, "source_object", text="")
+                row_source_object = col_source_list.row()
+                if has_source_object(active_source) and not is_source_type_valid(active_source):
+                    row_source_object.alert = True
+                row_source_object.prop(active_source, "source_object", text="")
             row_add_ops = col_source_list.row()
             op_add_active = row_add_ops.operator(operator="snap_tools.snap_source_add", text="Add Active")
             op_add_active.is_blank = False
@@ -65,8 +66,12 @@ class ST_PT_snap_tools(bpy.types.Panel):
             op_add_selected = row_add_ops.operator(operator="snap_tools.snap_source_add", text="Add Selected")
             op_add_selected.is_blank = False
             op_add_selected.only_active = False
-            col_source_list.operator(operator="snap_tools.capture", text="Capture")
-            col_source_list.operator(operator="snap_tools.apply_snap_to_source", text="Apply")
+            row_op_capture = col_source_list.row()
+            row_op_apply = col_source_list.row()
+            row_op_capture.operator(operator="snap_tools.capture", text="Capture")
+            row_op_apply.operator(operator="snap_tools.apply_snap_to_source", text="Apply")
+            row_op_capture.enabled = has_active_source(context) and has_source_object(active_source) and is_source_type_valid(active_source)
+            row_op_apply.enabled = has_active_source(context) and has_source_object(active_source) and is_source_type_valid(active_source)
 
             # Right Column contains +/-
             col_source_actions = row_sources.column()
@@ -83,10 +88,11 @@ class ST_PT_snap_tools(bpy.types.Panel):
     def draw_element_section(self, context):
         props = context.scene.snap_tools_settings
         if has_active_source(context):
-            active_source_index = get_active_source_index(context)
             active_source = get_active_source(context)
             layout = self.layout
             row_element = layout.row()
+            if not has_source_object(active_source) or not is_source_type_valid(active_source):
+                return
             match active_source.type:
                 case SourceType.OBJECT.name:
                     pass
@@ -106,7 +112,13 @@ class ST_PT_snap_tools(bpy.types.Panel):
                     )
                     if has_active_element(context):
                         element = get_active_element(context)
-                        col_element_list.prop(element, "name")
+                        col_element_list.prop_search(
+                            data=element,
+                            property="name",
+                            search_data=active_source.source_object.data,
+                            search_property="bones",
+                            text="Bone"
+                        )
                     row_add_ops = col_element_list.row()
                     op_add_active = row_add_ops.operator(operator="snap_tools.snap_element_add", text="Add Active")
                     op_add_active.only_active = True
