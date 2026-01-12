@@ -98,10 +98,32 @@ class ST_OT_snap_element_add(bpy.types.Operator):
         props = context.scene.snap_tools_settings
         active_preset = props.presets[props.active_preset_index]
         active_source = active_preset.sources[active_preset.active_source_index]
+        source_object: bpy.types.Object = active_source.source_object
         match active_source.type:
             case SourceType.POSE_BONE.name:
                 if not self.is_blank:
-                    pass
+                    if context.mode == "POSE":
+                        if self.only_active:
+                            bone = context.active_pose_bone
+                            if bone:
+                                element = active_source.element_bones.add()
+                                element.name = bone.name
+                        else:
+                            all_selected_bones = set()
+                            bones_in_source_object = set()
+                            for bone in source_object.pose.bones:
+                                bones_in_source_object.add(bone)
+                            for bone in source_object.pose.bones:
+                                if bone.select:
+                                    all_selected_bones.add(bone)
+                            
+                            bones_to_add = all_selected_bones.intersection(bones_in_source_object)
+                            for bone in bones_to_add:
+                                element = active_source.element_bones.add()
+                                element.name = bone.name
+
+                    else:
+                        self.report({"INFO"}, message="Adding bones only works in Pose mode.")
                 else:
                     active_source.element_bones.add()
 

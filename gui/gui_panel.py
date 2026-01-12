@@ -39,7 +39,7 @@ class ST_PT_snap_tools(bpy.types.Panel):
         if has_active_preset(context):
             active_preset = get_active_preset(context)
             source_section = self.layout
-            source_section.label(icon="OBJECT_DATA", text="Sources")
+            source_section.label(icon="OBJECT_DATA", text="Object")
             row_sources = source_section.row()
 
             # Left Column contains the source list
@@ -91,6 +91,9 @@ class ST_PT_snap_tools(bpy.types.Panel):
             active_source = get_active_source(context)
             layout = self.layout
             row_element = layout.row()
+            # The Panel only enabled when active object is the same as source object
+            row_element.enabled = active_source.source_object == context.active_object
+
             if not has_source_object(active_source) or not is_source_type_valid(active_source):
                 return
             match active_source.type:
@@ -120,12 +123,16 @@ class ST_PT_snap_tools(bpy.types.Panel):
                             text="Bone"
                         )
                     row_add_ops = col_element_list.row()
-                    op_add_active = row_add_ops.operator(operator="snap_tools.snap_element_add", text="Add Active")
+                    col_add_active = row_add_ops.column()
+                    col_add_selected = row_add_ops.column()
+                    op_add_active = col_add_active.operator(operator="snap_tools.snap_element_add", text="Add Active")
                     op_add_active.only_active = True
                     op_add_active.is_blank = False 
-                    op_add_selected = row_add_ops.operator(operator="snap_tools.snap_element_add", text="Add Selected")
+                    op_add_selected = col_add_selected.operator(operator="snap_tools.snap_element_add", text="Add Selected")
                     op_add_selected.only_active = False
                     op_add_selected.is_blank = False 
+                    # col_add_selected.enabled = active_source.source_object == context.active_object
+
 
                     # Right Column contains +/-
                     col_element_actions = row_element.column()
