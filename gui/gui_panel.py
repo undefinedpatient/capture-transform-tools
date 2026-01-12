@@ -28,8 +28,12 @@ class ST_PT_snap_tools(bpy.types.Panel):
         )
         # Right Column contains the actions
         col_preset_actions = row_presets.column()
-        op_snap_preset_add = col_preset_actions.operator(operator="snap_tools.snap_preset_add", icon="ADD", text="")
-        op_snap_preset_remove = col_preset_actions.operator(operator="snap_tools.snap_preset_remove", icon="REMOVE", text="")
+        row_preset_add = col_preset_actions.row()
+        row_preset_remove = col_preset_actions.row()
+        op_preset_add = row_preset_add.operator(operator="snap_tools.snap_preset_add", icon="ADD", text="")
+        op_preset_remove = row_preset_remove.operator(operator="snap_tools.snap_preset_remove", icon="REMOVE", text="")
+        row_preset_remove.enabled = has_active_preset(context)
+
         preset_section.separator(type="LINE")
 
     def draw_source_section(self, context):
@@ -66,9 +70,12 @@ class ST_PT_snap_tools(bpy.types.Panel):
 
             # Right Column contains +/-
             col_source_actions = row_sources.column()
-            op_snap_source_add = col_source_actions.operator(operator="snap_tools.snap_source_add", icon="ADD", text="")
-            op_snap_source_add.is_blank = True
-            op_snap_source_remove = col_source_actions.operator(operator="snap_tools.snap_source_remove", icon="REMOVE", text="")
+            row_source_add = col_source_actions.row()
+            row_source_remove = col_source_actions.row()
+            op_source_add = row_source_add.operator(operator="snap_tools.snap_source_add", icon="ADD", text="")
+            op_source_add.is_blank = True
+            op_snap_source_remove = row_source_remove.operator(operator="snap_tools.snap_source_remove", icon="REMOVE", text="")
+            row_source_remove.enabled = has_active_source(context)
             source_section.separator()
         else:
             return
@@ -110,9 +117,12 @@ class ST_PT_snap_tools(bpy.types.Panel):
 
                     # Right Column contains +/-
                     col_element_actions = row_element.column()
-                    op_snap_element_add = col_element_actions.operator(operator="snap_tools.snap_element_add", icon="ADD", text="")
+                    row_element_add = col_element_actions.row()
+                    row_element_remove = col_element_actions.row()
+                    op_snap_element_add = row_element_add.operator(operator="snap_tools.snap_element_add", icon="ADD", text="")
                     op_snap_element_add.is_blank = True
-                    op_snap_element_remove = col_element_actions.operator(operator="snap_tools.snap_element_remove", icon="REMOVE", text="")
+                    op_snap_element_remove = row_element_remove.operator(operator="snap_tools.snap_element_remove", icon="REMOVE", text="")
+                    row_element_remove.enabled = has_active_element(context)
 
     def draw_settings(self, context):
         props = context.scene.snap_tools_settings
