@@ -44,12 +44,38 @@ class ST_OT_snap_preset_remove(bpy.types.Operator):
         props.presets.remove(active_preset_index)
         return {"FINISHED"}
 
-class ST_OT_snap_source_add_objects(bpy.types.Operator):
-    bl_idname = "snap_tools.snap_source_add_objects"
-    bl_label = "Snap Source Add Objects"
+class ST_OT_snap_element_add(bpy.types.Operator):
+    bl_idname = "snap_tools.snap_element_add"
+    bl_label = "Snap Source Add Elements"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
 
+    is_blank: bpy.props.BoolProperty(
+        name="Is Blank",
+        default=True
+    )
+    only_active: bpy.props.BoolProperty(
+        name="Only Active",
+        default=False
+    )
+    # User should not be abled to select the type of element, so take it from scene
+    def execute(self, context):
+        props = context.scene.snap_tools_settings
+        match context.mode:
+            case "POSE":
+                print("add")
+        return {"FINISHED"}
+
+class ST_OT_snap_source_add(bpy.types.Operator):
+    bl_idname = "snap_tools.snap_source_add"
+    bl_label = "Snap Source Add"
+    bl_options = {"REGISTER", "UNDO"}
+    bl_description = "Empty"
+
+    is_blank: bpy.props.BoolProperty(
+        name="Is Blank",
+        default=True
+    )
     only_active: bpy.props.BoolProperty(
         name="Only Active",
         default=False
@@ -62,45 +88,39 @@ class ST_OT_snap_source_add_objects(bpy.types.Operator):
             self.report(type={"INFO"}, message="No preset exist, created one.")
             bpy.ops.snap_tools.snap_preset_add()
         active_preset_index = props.active_preset_index
+        active_preset = props.presets[active_preset_index]
 
         # If previously the source list is empty, set selection to 0
-        if props.presets[active_preset_index].active_source_index == -1:
-            props.presets[active_preset_index].active_source_index = 0
+        if active_preset.active_source_index == -1:
+            active_preset.active_source_index = 0
 
-        # Adding object(s) to the preset
-        if self.only_active:
-            source = props.presets[active_preset_index].sources.add()
-            source.name = context.active_object.name
-            source.source_object = context.active_object
-
+        if not self.is_blank:
+            if len(context.selected_objects) == 0:
+                self.report(type={"WARNING"}, message="No selected object!")
+                active_preset.active_source_index = -1
+                return {"FINISHED"}
+            # Adding object(s) to the preset
+            if self.only_active:
+                source = active_preset.sources.add()
+                source.name = context.active_object.name
+                source.source_object = context.active_object
+            else:
+                for o in context.selected_objects:
+                    source = active_preset.sources.add()
+                    source.name = o.name
+                    source.source_object = o
         else:
-            for o in context.selected_objects:
-                source = props.presets[active_preset_index].sources.add()
-                source.name = o.name
-                source.source_object = o
-        
+            # Empty as source here
+            active_preset.sources.add()
 
         return {"FINISHED"}
 
-class ST_OT_snap_source_add(bpy.types.Operator):
-    bl_idname = "snap_tools.snap_source_add"
-    bl_label = "Snap Source Add"
+class ST_OT_snap_element_remove(bpy.types.Operator):
+    bl_idname = "snap_tools.snap_element_remove"
+    bl_label = "Snap Source Remove Elements"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
     def execute(self, context):
-        props = context.scene.snap_tools_settings
-
-        active_preset_index = props.active_preset_index
-        # If previously the preset list is empty, create new preset
-        if active_preset_index == -1:
-            self.report(type={"INFO"}, message="No preset exist, created one.")
-            bpy.ops.snap_tools.snap_preset_add()
-            # Note: after this, the active_preset_index will be 0
-        # If previously the source list is empty, set selection to 0
-        if props.presets[active_preset_index].active_source_index == -1:
-            props.presets[active_preset_index].active_source_index = 0
-
-        props.presets[active_preset_index].sources.add()
         return {"FINISHED"}
 
 class ST_OT_snap_source_remove(bpy.types.Operator):
@@ -144,8 +164,9 @@ _classes = [
     ST_OT_snap_preset_add,
     ST_OT_snap_preset_remove,
     ST_OT_snap_source_add,
-    ST_OT_snap_source_add_objects,
     ST_OT_snap_source_remove,
+    ST_OT_snap_element_add,
+    ST_OT_snap_element_remove,
     ST_OT_apply_snap_to_source,
     ST_OT_apply_snap_to_element,
 ]

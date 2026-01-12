@@ -48,6 +48,10 @@ class ST_SnapSource(bpy.types.PropertyGroup):
         type=bpy.types.Object,
         name="Snap Object"
         )
+    active_element_index: bpy.props.IntProperty(
+        name="Active Element Index",
+        default=-1
+    )
 
     element_objects: bpy.props.CollectionProperty(
         type=ST_SnapElement_Object,
