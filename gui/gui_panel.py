@@ -1,6 +1,7 @@
 import bpy
 from . import gui_list
 from ..properties import SourceType, SnapType
+from ..utilities import *
 class ST_PT_snap_tools(bpy.types.Panel):
     bl_space_type = "VIEW_3D"    
     bl_region_type = "UI"
@@ -10,9 +11,6 @@ class ST_PT_snap_tools(bpy.types.Panel):
     bl_order = 1
     def draw_preset_section(self, context):
         props = context.scene.snap_tools_settings
-        presets = props.presets
-        active_index = props.active_preset_index
-        active_preset = None if active_index == -1 else presets[active_index]
 
         preset_section = self.layout
         preset_section.label(icon="BOOKMARKS", text="Presets")
@@ -36,14 +34,8 @@ class ST_PT_snap_tools(bpy.types.Panel):
 
     def draw_source_section(self, context):
         props = context.scene.snap_tools_settings
-        presets = props.presets
-        active_index = props.active_preset_index
-        active_preset = None if active_index == -1 else presets[active_index]
-        if active_preset:
-            active_source_index = active_preset.active_source_index
-            active_source = None if active_source_index == -1 else active_preset.sources[active_source_index]
-
-
+        if has_active_preset(context):
+            active_preset = get_active_preset(context)
             source_section = self.layout
             source_section.label(icon="OBJECT_DATA", text="Sources")
             row_sources = source_section.row()
@@ -59,7 +51,8 @@ class ST_PT_snap_tools(bpy.types.Panel):
                 active_propname="active_source_index",
                 rows=2
             )
-            if active_source:
+            if has_active_source(context):
+                active_source = get_active_source(context)
                 col_source_list.prop(active_source, "source_object", text="")
             row_add_ops = col_source_list.row()
             op_add_active = row_add_ops.operator(operator="snap_tools.snap_source_add", text="Add Active")
@@ -82,71 +75,62 @@ class ST_PT_snap_tools(bpy.types.Panel):
 
     def draw_element_section(self, context):
         props = context.scene.snap_tools_settings
-        presets = props.presets
-        active_index = props.active_preset_index
-        active_preset = None if active_index == -1 else presets[active_index]
+        if has_active_source(context):
+            active_source_index = get_active_source_index(context)
+            active_source = get_active_source(context)
+            layout = self.layout
+            row_element = layout.row()
+            match active_source.type:
+                case SourceType.OBJECT.name:
+                    pass
+                case SourceType.POSE_BONE.name:
+                    layout.label(icon="ARMATURE_DATA", text="Elements")
+                    row_element = layout.row()
+                    # Left Column contains the element list
+                    col_element_list = row_element.column()
+                    col_element_list.template_list(
+                        listtype_name="ST_UL_snap_elements",
+                        list_id="element_list",
+                        dataptr=active_source,
+                        propname="element_bones",
+                        active_dataptr=active_source,
+                        active_propname="active_element_index",
+                        rows=3
+                    )
+                    if has_active_element(context):
+                        element = get_active_element(context)
+                        col_element_list.prop(element, "name")
+                    row_add_ops = col_element_list.row()
+                    op_add_active = row_add_ops.operator(operator="snap_tools.snap_element_add", text="Add Active")
+                    op_add_active.only_active = True
+                    op_add_active.is_blank = False 
+                    op_add_selected = row_add_ops.operator(operator="snap_tools.snap_element_add", text="Add Selected")
+                    op_add_selected.only_active = False
+                    op_add_selected.is_blank = False 
 
-        if active_preset:
-            active_source_index = active_preset.active_source_index
-            active_source = None if active_source_index == -1 else active_preset.sources[active_source_index]
-            if active_source:
-                layout = self.layout
-                row_element = layout.row()
-                match active_source.type:
-                    case SourceType.OBJECT.name:
-                        pass
-                    case SourceType.POSE_BONE.name:
-                        layout.label(icon="ARMATURE_DATA", text="Elements")
-                        row_element = layout.row()
-                        # Left Column contains the element list
-                        col_element_list = row_element.column()
-                        col_element_list.template_list(
-                            listtype_name="ST_UL_snap_elements",
-                            list_id="element_list",
-                            dataptr=active_source,
-                            propname="element_bones",
-                            active_dataptr=active_source,
-                            active_propname="active_element_index",
-                            rows=3
-                        )
-                        if active_source.active_element_index != -1:
-                            col_element_list.prop(active_source.element_bones[active_source.active_element_index], "name")
-                            # col_element_list.prop_search()
-                        row_add_ops = col_element_list.row()
-                        op_add_active = row_add_ops.operator(operator="snap_tools.snap_element_add", text="Add Active")
-                        op_add_active.only_active = True
-                        op_add_active.is_blank = False 
-                        op_add_selected = row_add_ops.operator(operator="snap_tools.snap_element_add", text="Add Selected")
-                        op_add_selected.only_active = False
-                        op_add_selected.is_blank = False 
-    
-                        # Right Column contains +/-
-                        col_element_actions = row_element.column()
-                        op_snap_element_add = col_element_actions.operator(operator="snap_tools.snap_element_add", icon="ADD", text="")
-                        op_snap_element_add.is_blank = True
-                        op_snap_element_remove = col_element_actions.operator(operator="snap_tools.snap_element_remove", icon="REMOVE", text="")
+                    # Right Column contains +/-
+                    col_element_actions = row_element.column()
+                    op_snap_element_add = col_element_actions.operator(operator="snap_tools.snap_element_add", icon="ADD", text="")
+                    op_snap_element_add.is_blank = True
+                    op_snap_element_remove = col_element_actions.operator(operator="snap_tools.snap_element_remove", icon="REMOVE", text="")
 
     def draw_settings(self, context):
         props = context.scene.snap_tools_settings
-        presets = props.presets
-        active_index = props.active_preset_index
-        active_preset = None if active_index == -1 else presets[active_index]
-        if active_preset:
-            active_source_index = active_preset.active_source_index
-            active_source = None if active_source_index == -1 else active_preset.sources[active_source_index]
-            layout = self.layout
-            layout.separator(type="LINE")
-            if active_source:   
-                layout.label(icon="PRESET",text="Settings")
-                row_snap_type = layout.column_flow(columns=1)
-                row_snap_type.props_enum(active_source, "snap_type")
-                match active_source.snap_type:
-                    case SnapType.LOCATION.name:
-                        layout.prop(props, "relative_location", text="")
-                    case SnapType.RELATIVE.name:
-                        layout.prop(props, "relative_object", text="")
-            else:
-                layout.label(text="You need to pick a source")
+        layout = self.layout
+        layout.separator(type="LINE")
+        layout.label(icon="PRESET",text="Source Settings")
+        if has_active_source(context):
+            active_preset = get_active_preset(context)
+            active_source = get_active_source(context)
+            row_snap_type = layout.column_flow(columns=1)
+            row_snap_type.props_enum(active_source, "snap_type")
+            match active_source.snap_type:
+                case SnapType.LOCATION.name:
+                    layout.prop(props, "relative_location", text="")
+                case SnapType.RELATIVE.name:
+                    layout.prop(props, "relative_object", text="")
+        else:
+            layout.label(text="You need to pick a source")
 
     def draw(self, context):
         layout = self.layout

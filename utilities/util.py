@@ -9,7 +9,7 @@ def has_active_preset(context:bpy.types.Context) -> bool:
 
 def get_active_preset(context:bpy.types.Context):
     if has_active_preset(context):
-        context.scene.snap_tools_settings.presets[get_active_preset_index(context)]
+        return context.scene.snap_tools_settings.presets[get_active_preset_index(context)]
     else:
         raise RuntimeError("No active preset!")
     
@@ -29,7 +29,7 @@ def get_active_source(context: bpy.types.Context):
         raise RuntimeError("No active source!")
 
 def get_active_element_index(context:bpy.types.Context) -> int:
-    return get_active_source(context).active_element_index != -1
+    return get_active_source(context).active_element_index
 
 def has_active_element(context: bpy.types.Context) -> bool:
     if not has_active_source(context):
@@ -40,15 +40,17 @@ def get_active_element(context: bpy.types.Context):
     if has_active_element(context):
         source = get_active_source(context)
         match source.type:
-            case SourceType.OBJECT:
-                source.element_objects[get_active_element_index(context)]
-            case SourceType.POSE_BONE:
-                source.element_bones[get_active_element_index(context)]
+            case SourceType.OBJECT.name:
+                return source.element_objects[get_active_element_index(context)]
+            case SourceType.POSE_BONE.name:
+                return source.element_bones[get_active_element_index(context)]
+            case _:
+                raise RuntimeError("Unknown Source Type")
     else:
         raise RuntimeError("No active element!")
     
-def switch_source_type(source, type: SourceType):
-    match type:
+def switch_source_type(source, target_type: SourceType):
+    match target_type:
         # Switch to OBJECT
         case SourceType.OBJECT.name:
             if len(source.element_objects) <= source.active_element_index:
@@ -59,4 +61,4 @@ def switch_source_type(source, type: SourceType):
                 source.active_element_index = len(source.element_bones) - 1
         case _:
             raise RuntimeError("Unknown source type!")
-    source.type = type
+    source.type = target_type
