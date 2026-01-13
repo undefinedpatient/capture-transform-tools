@@ -2,30 +2,30 @@ import bpy
 
 from .types import SourceType
 
-def get_active_preset_index(context: bpy.types.Context) -> int:
-    return context.scene.snap_tools_settings.active_preset_index
+def get_active_group_index(context: bpy.types.Context) -> int:
+    return context.scene.snap_tools_settings.active_group_index
 
-def has_active_preset(context:bpy.types.Context) -> bool:
-    return get_active_preset_index(context) != -1
+def has_active_group(context:bpy.types.Context) -> bool:
+    return get_active_group_index(context) != -1
 
-def get_active_preset(context:bpy.types.Context):
-    if has_active_preset(context):
-        return context.scene.snap_tools_settings.presets[get_active_preset_index(context)]
+def get_active_group(context:bpy.types.Context):
+    if has_active_group(context):
+        return context.scene.snap_tools_settings.groups[get_active_group_index(context)]
     else:
-        raise RuntimeError("No active preset!")
+        raise RuntimeError("No active group!")
     
 def get_active_source_index(context: bpy.types.Context) -> int:
-    preset = get_active_preset(context)
-    return preset.active_source_index
+    group = get_active_group(context)
+    return group.active_source_index
 
 def has_active_source(context: bpy.types.Context) -> bool:
-    if not has_active_preset(context):
+    if not has_active_group(context):
         return False
     return get_active_source_index(context) != -1
 
 def get_active_source(context: bpy.types.Context):
     if has_active_source(context):
-        return get_active_preset(context).sources[get_active_source_index(context)]
+        return get_active_group(context).sources[get_active_source_index(context)]
     else:
         raise RuntimeError("No active source!")
 
@@ -43,7 +43,7 @@ def get_active_element(context: bpy.types.Context):
         match source.type:
             case SourceType.OBJECT.name:
                 return source.element_objects[get_active_element_index(context)]
-            case SourceType.POSE_BONE.name:
+            case SourceType.ARMATURE.name:
                 return source.element_bones[get_active_element_index(context)]
             case _:
                 raise RuntimeError("Unknown SourceType")
@@ -60,7 +60,7 @@ def is_source_type_valid(source) -> bool:
     match source.type:
         case SourceType.OBJECT.name:
             return True
-        case SourceType.POSE_BONE.name:
+        case SourceType.ARMATURE.name:
             return source.source_object.type == "ARMATURE"
         case _:
             raise RuntimeError("Unknow SourceType")
@@ -72,7 +72,7 @@ def switch_source_type(source, target_type: SourceType):
             if len(source.element_objects) <= source.active_element_index:
                 source.active_element_index = len(source.element_objects) - 1
         # Switch to POSE_BONE
-        case SourceType.POSE_BONE.name:
+        case SourceType.ARMATURE.name:
             if len(source.element_bones) <= source.active_element_index:
                 source.active_element_index = len(source.element_bones) - 1
         case _:

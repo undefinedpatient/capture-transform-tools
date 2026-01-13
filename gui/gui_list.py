@@ -17,7 +17,7 @@ class ST_UL_snap_sources(bpy.types.UIList):
             row_item.prop(data=item, property="name", icon="RADIOBUT_OFF", text="", emboss=False)
         row_item.prop(data=item, property="type", text="", emboss=False, expand=False)
 
-class ST_UL_snap_presets(bpy.types.UIList):
+class ST_UL_snap_groups(bpy.types.UIList):
     layout_type="DEFAULT"
     def draw_item(self, context, layout, data, item, icon, active_data, active_property, index, flt_flag):
 
@@ -30,7 +30,7 @@ class ST_UL_snap_presets(bpy.types.UIList):
 _classes = [
     ST_UL_snap_elements,
     ST_UL_snap_sources,
-    ST_UL_snap_presets
+    ST_UL_snap_groups
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

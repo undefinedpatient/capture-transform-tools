@@ -17,17 +17,17 @@ class ST_OT_capture(bpy.types.Operator):
     def execute(self, context):
         return {"FINISHED"}
 
-class ST_OT_snap_preset_add(bpy.types.Operator):
-    bl_idname = "snap_tools.snap_preset_add"
-    bl_label = "Snap Preset Add"
+class ST_OT_snap_group_add(bpy.types.Operator):
+    bl_idname = "snap_tools.snap_group_add"
+    bl_label = "Snap Group Add"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
     def execute(self, context):
         props = context.scene.snap_tools_settings
-        new_preset = props.presets.add()
-        # If it is a newly added preset, set the active preset index to 0
-        if len(props.presets) == 1:
-            props.active_preset_index = 0
+        new_group = props.groups.add()
+        # If it is a newly added group, set the active group index to 0
+        if len(props.groups) == 1:
+            props.active_group_index = 0
         return {"FINISHED"}
 
 class ST_OT_snap_source_add(bpy.types.Operator):
@@ -48,34 +48,34 @@ class ST_OT_snap_source_add(bpy.types.Operator):
     def execute(self, context):
         props = context.scene.snap_tools_settings
 
-        if len(props.presets) == 0:
-            self.report(type={"INFO"}, message="No preset exist, created one.")
-            bpy.ops.snap_tools.snap_preset_add()
-        active_preset_index = props.active_preset_index
-        active_preset = props.presets[active_preset_index]
+        if len(props.groups) == 0:
+            self.report(type={"INFO"}, message="No Group exist, created one.")
+            bpy.ops.snap_tools.snap_group_add()
+        active_group_index = props.active_group_index
+        active_group = props.groups[active_group_index]
 
         # If previously the source list is empty, set selection to 0
-        if active_preset.active_source_index == -1:
-            active_preset.active_source_index = 0
+        if active_group.active_source_index == -1:
+            active_group.active_source_index = 0
 
         if not self.is_blank:
             if len(context.selected_objects) == 0:
                 self.report(type={"WARNING"}, message="No selected object!")
-                active_preset.active_source_index = -1
+                active_group.active_source_index = -1
                 return {"FINISHED"}
-            # Adding object(s) to the preset
+            # Adding object(s) to the group
             if self.only_active:
-                source = active_preset.sources.add()
+                source = active_group.sources.add()
                 source.name = context.active_object.name
                 source.source_object = context.active_object
             else:
                 for o in context.selected_objects:
-                    source = active_preset.sources.add()
+                    source = active_group.sources.add()
                     source.name = o.name
                     source.source_object = o
         else:
             # Empty as source here
-            active_preset.sources.add()
+            active_group.sources.add()
 
         return {"FINISHED"}
 
@@ -96,11 +96,11 @@ class ST_OT_snap_element_add(bpy.types.Operator):
     # User should not be abled to select the type of element, so take it from scene
     def execute(self, context):
         props = context.scene.snap_tools_settings
-        active_preset = props.presets[props.active_preset_index]
-        active_source = active_preset.sources[active_preset.active_source_index]
+        active_group = props.groups[props.active_group_index]
+        active_source = active_group.sources[active_group.active_source_index]
         source_object: bpy.types.Object = active_source.source_object
         match active_source.type:
-            case SourceType.POSE_BONE.name:
+            case SourceType.ARMATURE.name:
                 if not self.is_blank:
                     if context.mode == "POSE":
                         if self.only_active:
@@ -129,18 +129,18 @@ class ST_OT_snap_element_add(bpy.types.Operator):
 
         return {"FINISHED"}
 
-class ST_OT_snap_preset_remove(bpy.types.Operator):
-    bl_idname = "snap_tools.snap_preset_remove"
-    bl_label = "Snap Preset Remove"
+class ST_OT_snap_group_remove(bpy.types.Operator):
+    bl_idname = "snap_tools.snap_group_remove"
+    bl_label = "Snap group Remove"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
     def execute(self, context):
         props = context.scene.snap_tools_settings
-        if not has_active_preset(context):
+        if not has_active_group(context):
             return {"FINISHED"}
-        active_preset_index = props.active_preset_index
-        props.active_preset_index -= 1
-        props.presets.remove(active_preset_index)
+        active_group_index = props.active_group_index
+        props.active_group_index -= 1
+        props.groups.remove(active_group_index)
         return {"FINISHED"}
     
 class ST_OT_snap_source_remove(bpy.types.Operator):
@@ -152,14 +152,14 @@ class ST_OT_snap_source_remove(bpy.types.Operator):
         props = context.scene.snap_tools_settings
         if not has_active_source(context):
             return {"FINISHED"}
-        if len(props.presets) == 0 or len(props.presets[props.active_preset_index].sources) == 0:
+        if len(props.groups) == 0 or len(props.groups[props.active_group_index].sources) == 0:
             return {"FINISHED"}
-        active_preset = props.presets[props.active_preset_index]
-        active_source_index = active_preset.active_source_index
+        active_group = props.groups[props.active_group_index]
+        active_source_index = active_group.active_source_index
 
-        props.presets[props.active_preset_index].active_source_index -= 1
+        props.groups[props.active_group_index].active_source_index -= 1
 
-        active_preset.sources.remove(active_source_index)
+        active_group.sources.remove(active_source_index)
 
         return {"FINISHED"}
 
@@ -173,9 +173,9 @@ class ST_OT_snap_element_remove(bpy.types.Operator):
             return {"FINISHED"}
         source = get_active_source(context)
         match source.type:
-            case SourceType.OBJECT.name:
+            case SourceType.OBJECT_GROUP.name:
                 source.element_objects.remove(get_active_element_index(context))
-            case SourceType.POSE_BONE.name:
+            case SourceType.ARMATURE.name:
                 source.element_bones.remove(get_active_element_index(context))
         source.active_element_index -= 1
         return {"FINISHED"}
@@ -199,10 +199,10 @@ class ST_OT_apply_snap_to_element(bpy.types.Operator):
 _classes = [
     ST_OT_snap,
     ST_OT_capture,
-    ST_OT_snap_preset_add,
+    ST_OT_snap_group_add,
     ST_OT_snap_source_add,
     ST_OT_snap_element_add,
-    ST_OT_snap_preset_remove,
+    ST_OT_snap_group_remove,
     ST_OT_snap_source_remove,
     ST_OT_snap_element_remove,
     ST_OT_apply_snap_to_source,

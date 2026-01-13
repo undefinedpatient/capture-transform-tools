@@ -6,11 +6,19 @@ class ST_SnapElement_Object(bpy.types.PropertyGroup):
         type=bpy.types.Object,
         name="object"
     )
+    transformation: bpy.props.FloatVectorProperty(
+        name="transformation",
+        subtype="MATRIX"
+    )
 
 class ST_SnapElement_PoseBone(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(name="name", default="")
     element: bpy.props.StringProperty(
         name="bone"
+    )
+    transformation: bpy.props.FloatVectorProperty(
+        name="transformation",
+        subtype="MATRIX"
     )
 
 class ST_SnapSource(bpy.types.PropertyGroup):
@@ -19,7 +27,7 @@ class ST_SnapSource(bpy.types.PropertyGroup):
     type: bpy.props.EnumProperty(
         items=[
             (SourceType.OBJECT.name, "Object", "Empty", "OBJECT_DATA", 0),
-            (SourceType.POSE_BONE.name, "Armature", "Empty", "POSE_HLT", 1),
+            (SourceType.ARMATURE.name, "Armature", "Empty", "POSE_HLT", 1),
         ],
     )
     # Type of snapping, either absolute location in global space, or offset with objects
@@ -32,12 +40,13 @@ class ST_SnapSource(bpy.types.PropertyGroup):
     # The object containing the elements
     source_object: bpy.props.PointerProperty(
         type=bpy.types.Object,
-        name="Snap Object"
+        name="The object from which the data are taken"
         )
     active_element_index: bpy.props.IntProperty(
         name="Active Element Index",
         default=-1
     )
+
     #
     #   Elements
     #
@@ -48,17 +57,6 @@ class ST_SnapSource(bpy.types.PropertyGroup):
     element_bones: bpy.props.CollectionProperty(
         type=ST_SnapElement_PoseBone,
         name="Elemenet Bones"
-    )
-
-class ST_Preset(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty(name="name", default="preset")
-    sources: bpy.props.CollectionProperty(
-        type=ST_SnapSource,
-        name="Sources"
-    )
-    active_source_index: bpy.props.IntProperty(
-        name="Active Source Index",
-        default=-1
     )
     relative_location: bpy.props.FloatVectorProperty(
         name="Relative Location",
@@ -75,19 +73,22 @@ class ST_Preset(bpy.types.PropertyGroup):
         name="Relative Vertex Group"
     )
 
-class ST_PropertyGroup(bpy.types.PropertyGroup):
-    presets: bpy.props.CollectionProperty(type=ST_Preset, name= "Presets")
-    active_preset_index: bpy.props.IntProperty(
-        name="Active Preset Index",
+class ST_Group(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(name="name", default="group")
+    sources: bpy.props.CollectionProperty(
+        type=ST_SnapSource,
+        name="Sources"
+    )
+    active_source_index: bpy.props.IntProperty(
+        name="Active Source Index",
         default=-1
     )
-    relative_location: bpy.props.FloatVectorProperty(
-        name="Relative Location",
-        subtype="XYZ"
-    )
-    relative_object: bpy.props.PointerProperty(
-        type=bpy.types.Object, 
-        name="Relative Object"
+
+class ST_PropertyGroup(bpy.types.PropertyGroup):
+    groups: bpy.props.CollectionProperty(type=ST_Group, name= "groups")
+    active_group_index: bpy.props.IntProperty(
+        name="Active group Index",
+        default=-1
     )
 
 
@@ -95,7 +96,7 @@ _classes = [
     ST_SnapElement_Object,
     ST_SnapElement_PoseBone,
     ST_SnapSource,
-    ST_Preset,
+    ST_Group,
     ST_PropertyGroup
 ]
 
