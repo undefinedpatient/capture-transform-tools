@@ -9,3 +9,13 @@ class SnapType(Enum):
     RELATIVE = 1,
     CURSOR = 2,
     CAMERA = 3
+
+class CaptureScope(Enum):
+    PRESET = 0,
+    SOURCE = 1,
+    ELEMENT = 2
+
+class ApplyScope(Enum):
+    PRESET = 0,
+    SOURCE = 1,
+    ELEMENT = 2

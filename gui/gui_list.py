@@ -15,6 +15,7 @@ class ST_UL_snap_sources(bpy.types.UIList):
             row_item.prop(data=item, property="name", icon="RADIOBUT_ON", text="", emboss=False)
         else:
             row_item.prop(data=item, property="name", icon="RADIOBUT_OFF", text="", emboss=False)
+        # row_item.prop(data=item, property="source_object")
         row_item.prop(data=item, property="type", text="", emboss=False, expand=False)
 
 class ST_UL_snap_groups(bpy.types.UIList):

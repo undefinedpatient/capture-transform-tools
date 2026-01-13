@@ -1,4 +1,5 @@
 import bpy
+from mathutils import Vector, Matrix
 from ..utilities import *
 
 class ST_OT_snap(bpy.types.Operator):
@@ -6,7 +7,44 @@ class ST_OT_snap(bpy.types.Operator):
     bl_label = "Snap"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
+    apply_scope: bpy.props.EnumProperty(
+        items=[
+            (ApplyScope.PRESET.name, "Preset", "Empty", "OUTLINER_COLLECTION", 0),
+            (ApplyScope.SOURCE.name, "Source", "Empty", "OBJECT_DATA", 1),
+            (ApplyScope.ELEMENT.name, "Element", "Empty", "STICKY_UVS_DISABLE", 2)
+        ]
+    )
     def execute(self, context):
+        match self.apply_scope:
+            case ApplyScope.PRESET.name:
+                self.report({"WARNING"}, message="Not Implemented.")
+            case ApplyScope.SOURCE.name:
+                if not has_active_source(context):
+                    return {"FINISHED"}
+                active_source = get_active_source(context)
+                active_group = get_active_group(context)
+                source_object: bpy.types.Object = active_source.source_object
+                match active_source.type:
+                    case SourceType.OBJECT.name:
+                        match active_group.snap_type:
+                            case SnapType.LOCATION.name:
+                                if not active_group.relative_object:
+                                    return {"FINISHED"}
+                                relative_matrix: Matrix = Matrix.Translation(active_group.relative_location)
+                                offset_matrix: Matrix = Matrix(active_source.transformation)
+                                applied_matrix = (relative_matrix @ offset_matrix)
+                                source_object.matrix_world = applied_matrix
+                            case SnapType.RELATIVE.name:
+                                if not active_group.relative_object:
+                                    return {"FINISHED"}
+                                relative_matrix: Matrix = Matrix(active_group.relative_object.matrix_world)
+                                offset_matrix: Matrix = Matrix(active_source.transformation)
+                                applied_matrix = (relative_matrix @ offset_matrix)
+                                source_object.matrix_world = applied_matrix
+                
+            case ApplyScope.ELEMENT.name:
+                self.report({"WARNING"}, message="Not Implemented.")
+
         return {"FINISHED"}
 
 class ST_OT_capture(bpy.types.Operator):
@@ -14,7 +52,47 @@ class ST_OT_capture(bpy.types.Operator):
     bl_label = "Capture"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
+
+    capture_scope: bpy.props.EnumProperty(
+        items=[
+            (CaptureScope.PRESET.name, "Preset", "Empty", "OUTLINER_COLLECTION", 0),
+            (CaptureScope.SOURCE.name, "Source", "Empty", "OBJECT_DATA", 1),
+            (CaptureScope.ELEMENT.name, "Element", "Empty", "STICKY_UVS_DISABLE", 2)
+        ]
+    )
+
     def execute(self, context):
+        match self.capture_scope:
+            case CaptureScope.PRESET.name:
+                self.report({"WARNING"}, message="Not Implemented.")
+            case CaptureScope.SOURCE.name:
+                if not has_active_source(context):
+                    return {"FINISHED"}
+                active_source = get_active_source(context)
+                active_group = get_active_group(context)
+                source_object: bpy.types.Object = active_source.source_object
+                match active_source.type:
+                    case SourceType.OBJECT.name:
+                        match active_group.snap_type:
+                            case SnapType.LOCATION.name:
+                                location: Vector = active_group.relative_location
+                                relative_matrix: Matrix = Matrix.Translation(location)
+                                relative_matrix.invert()
+                                offset_matrix = (relative_matrix @ source_object.matrix_world)
+                                offset_matrix.transpose()
+                                active_source.transformation = [v for col in offset_matrix for v in col]
+                            case SnapType.RELATIVE.name:
+                                relative_matrix: Matrix = Matrix(active_group.relative_object.matrix_world)
+                                relative_matrix.invert()
+                                offset_matrix = (relative_matrix @ source_object.matrix_world)
+                                offset_matrix.transpose()
+                                active_source.transformation = [v for col in offset_matrix for v in col]
+                            case _:
+                                self.report({"WARNING"}, message="Unknown SourceType")
+                    case _:
+                        self.report({"WARNING"}, message="Not Implemented.")
+            case CaptureScope.ELEMENT.name:
+                self.report({"WARNING"}, message="Not Implemented.")
         return {"FINISHED"}
 
 class ST_OT_snap_group_add(bpy.types.Operator):
@@ -25,6 +103,7 @@ class ST_OT_snap_group_add(bpy.types.Operator):
     def execute(self, context):
         props = context.scene.snap_tools_settings
         new_group = props.groups.add()
+        new_group.name = get_unqiue_name_from_list("group", list(map(lambda g: g.name,props.groups)))
         # If it is a newly added group, set the active group index to 0
         if len(props.groups) == 1:
             props.active_group_index = 0
@@ -75,7 +154,8 @@ class ST_OT_snap_source_add(bpy.types.Operator):
                     source.source_object = o
         else:
             # Empty as source here
-            active_group.sources.add()
+            source = active_group.sources.add()
+            source.name = get_unqiue_name_from_list("source", list(map(lambda s: s.name, active_group.sources)))
 
         return {"FINISHED"}
 
@@ -168,6 +248,7 @@ class ST_OT_snap_element_remove(bpy.types.Operator):
     bl_label = "Snap Source Remove Elements"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
+
     def execute(self, context):
         if not has_active_element(context):
             return {"FINISHED"}
@@ -180,22 +261,6 @@ class ST_OT_snap_element_remove(bpy.types.Operator):
         source.active_element_index -= 1
         return {"FINISHED"}
 
-class ST_OT_apply_snap_to_source(bpy.types.Operator):
-    bl_idname = "snap_tools.apply_snap_to_source"
-    bl_label = "Apply Snap to Source"
-    bl_options = {"REGISTER", "UNDO"}
-    bl_description = "Empty"
-    def execute(self, context):
-        return {"FINISHED"}
-
-class ST_OT_apply_snap_to_element(bpy.types.Operator):
-    bl_idname = "snap_tools.apply_snap_to_element"
-    bl_label = "Apply Snap to Element"
-    bl_options = {"REGISTER", "UNDO"}
-    bl_description = "Empty"
-    def execute(self, context):
-        return {"FINISHED"}
-
 _classes = [
     ST_OT_snap,
     ST_OT_capture,
@@ -204,9 +269,7 @@ _classes = [
     ST_OT_snap_element_add,
     ST_OT_snap_group_remove,
     ST_OT_snap_source_remove,
-    ST_OT_snap_element_remove,
-    ST_OT_apply_snap_to_source,
-    ST_OT_apply_snap_to_element,
+    ST_OT_snap_element_remove
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

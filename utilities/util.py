@@ -78,3 +78,13 @@ def switch_source_type(source, target_type: SourceType):
         case _:
             raise RuntimeError("Unknown SourceType!")
     source.type = target_type
+
+
+def get_unqiue_name_from_list(name: str, list: list[str]) -> str:
+    new_name: str = name
+    occurance: int = 0
+    while new_name in list:
+        occurance += 1
+        suffix = "." + str(occurance).rjust(3, '0')
+        new_name = name + suffix
+    return new_name

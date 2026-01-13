@@ -24,6 +24,10 @@ class ST_PT_snap_tools(bpy.types.Panel):
             active_propname="active_group_index",
             rows=1
         )
+        op_capture = col_group_list.operator(operator="snap_tools.capture", icon="COPYDOWN", text="Capture (Group)")
+        op_capture.capture_scope = CaptureScope.PRESET.name
+        op_apply = col_group_list.operator(operator="snap_tools.snap", icon="PASTEDOWN", text="Apply")
+        op_apply.apply_scope = ApplyScope.PRESET.name
         # Right Column contains the actions
         col_group_actions = row_groups.column()
         row_group_add = col_group_actions.row()
@@ -55,12 +59,10 @@ class ST_PT_snap_tools(bpy.types.Panel):
             )
             if has_active_source(context):
                 active_source = get_active_source(context)
-                match active_source.type:
-                    case SourceType.ARMATURE.name:
-                        row_source_object = col_source_list.row()
-                        if has_source_object(active_source) and not is_source_type_valid(active_source):
-                            row_source_object.alert = True
-                        row_source_object.prop(active_source, "source_object", text="")
+                row_source_object = col_source_list.row()
+                if has_source_object(active_source) and not is_source_type_valid(active_source):
+                    row_source_object.alert = True
+                row_source_object.prop(active_source, "source_object", text="")
             row_add_ops = col_source_list.row()
             op_add_active = row_add_ops.operator(operator="snap_tools.snap_source_add", text="Add Active")
             op_add_active.is_blank = False
@@ -68,10 +70,14 @@ class ST_PT_snap_tools(bpy.types.Panel):
             op_add_selected = row_add_ops.operator(operator="snap_tools.snap_source_add", text="Add Selected")
             op_add_selected.is_blank = False
             op_add_selected.only_active = False
+
+
             row_op_capture = col_source_list.row()
             row_op_apply = col_source_list.row()
-            row_op_capture.operator(operator="snap_tools.capture", text="Capture")
-            row_op_apply.operator(operator="snap_tools.apply_snap_to_source", text="Apply")
+            op_capture = row_op_capture.operator(operator="snap_tools.capture", icon="COPYDOWN", text="Capture (Source)")
+            op_capture.capture_scope = CaptureScope.SOURCE.name
+            op_apply = row_op_apply.operator(operator="snap_tools.snap", icon="PASTEDOWN", text="Apply")
+            op_apply.apply_scope = ApplyScope.SOURCE.name
             row_op_capture.enabled = has_active_source(context) and has_source_object(active_source) and is_source_type_valid(active_source)
             row_op_apply.enabled = has_active_source(context) and has_source_object(active_source) and is_source_type_valid(active_source)
 
@@ -133,6 +139,13 @@ class ST_PT_snap_tools(bpy.types.Panel):
                     op_add_selected = col_add_selected.operator(operator="snap_tools.snap_element_add", text="Add Selected")
                     op_add_selected.only_active = False
                     op_add_selected.is_blank = False 
+
+                    row_op_capture = col_element_list.row()
+                    row_op_apply = col_element_list.row()
+                    op_capture = row_op_capture.operator(operator="snap_tools.capture", icon="COPYDOWN", text="Capture (Element)")
+                    op_capture.capture_scope = CaptureScope.ELEMENT.name
+                    op_apply = row_op_apply.operator(operator="snap_tools.snap", icon="PASTEDOWN", text="Apply")
+                    op_apply.apply_scope = ApplyScope.ELEMENT.name
                     # col_add_selected.enabled = active_source.source_object == context.active_object
 
 
@@ -149,16 +162,17 @@ class ST_PT_snap_tools(bpy.types.Panel):
         props = context.scene.snap_tools_settings
         layout = self.layout
         layout.separator(type="LINE")
-        layout.label(icon="SETTINGS",text="Source Settings")
+        layout.label(icon="SETTINGS",text="Group Settings")
         if has_active_source(context):
+            active_group = get_active_group(context)
             active_source = get_active_source(context)
             row_snap_type = layout.column_flow(columns=1)
-            row_snap_type.props_enum(active_source, "snap_type")
-            match active_source.snap_type:
+            row_snap_type.props_enum(active_group, "snap_type")
+            match active_group.snap_type:
                 case SnapType.LOCATION.name:
-                    layout.prop(active_source, "relative_location", text="")
+                    layout.prop(active_group, "relative_location", text="")
                 case SnapType.RELATIVE.name:
-                    layout.prop(active_source, "relative_object", text="")
+                    layout.prop(active_group, "relative_object", text="")
         else:
             layout.label(text="You need to pick a source")
 
