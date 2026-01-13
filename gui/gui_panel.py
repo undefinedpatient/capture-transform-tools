@@ -108,7 +108,7 @@ class ST_PT_snap_tools(bpy.types.Panel):
                 case SourceType.OBJECT.name:
                     pass
                 case SourceType.ARMATURE.name:
-                    layout.label(icon="ARMATURE_DATA", text="Elements")
+                    layout.label(icon="GROUP_BONE", text="Elements")
                     row_element = layout.row()
                     # Left Column contains the element list
                     col_element_list = row_element.column()

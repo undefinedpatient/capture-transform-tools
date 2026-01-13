@@ -254,7 +254,7 @@ class ST_OT_snap_element_remove(bpy.types.Operator):
             return {"FINISHED"}
         source = get_active_source(context)
         match source.type:
-            case SourceType.OBJECT_GROUP.name:
+            case SourceType.OBJECT.name:
                 source.element_objects.remove(get_active_element_index(context))
             case SourceType.ARMATURE.name:
                 source.element_bones.remove(get_active_element_index(context))
