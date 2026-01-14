@@ -84,6 +84,17 @@ class ST_Group(bpy.types.PropertyGroup):
         name="Relative Vertex Group"
     )
 
+    # captured_relative_matrix: bpy.props.FloatVectorProperty(
+    #     name="Captured Relative Matrix",
+    #     size=16,
+    #     default=(
+    #         1,0,0,0,
+    #         0,1,0,0,
+    #         0,0,1,0,
+    #         0,0,0,1
+    #     ),
+    #     subtype="MATRIX"
+    # )
 class ST_PropertyGroup(bpy.types.PropertyGroup):
     groups: bpy.props.CollectionProperty(type=ST_Group, name= "groups")
     active_group_index: bpy.props.IntProperty(

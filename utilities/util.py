@@ -102,7 +102,8 @@ def capture_source(group, source):
             relative_matrix: Matrix = get_relative_matrix(group)
             source_object: bpy.types.Object = source.source_object
             source_matrix: Matrix = source_object.matrix_world
-            offset_matrix: Matrix = (source_matrix @ relative_matrix.inverted_safe())
+            offset_matrix: Matrix = (relative_matrix.inverted_safe() @ source_matrix)
+            print(offset_matrix)
             source.transformation = [v for col in offset_matrix.transposed() for v in col]
         case SourceType.ARMATURE.name:
             for element in source.element_bones:
@@ -127,12 +128,13 @@ def capture_element_bone(group, source, element):
     bones = source.source_object.pose.bones
     bone: bpy.types.PoseBone = bones[element.name]
     relative_matrix: Matrix = get_relative_matrix(group)
-    source_matrix: Matrix = bone.matrix_basis @ source.source_object.matrix_world
-    offset_matrix: Matrix = (source_matrix @ relative_matrix.inverted_safe())
+    source_matrix: Matrix = source.source_object.matrix_world.inverted_safe() @ bone.matrix_basis
+    offset_matrix: Matrix = (relative_matrix.inverted_safe() @ source_matrix)
+
     element.transformation = [v for col in offset_matrix.transposed() for v in col]
-    # print("Local: \n", bone.matrix_local)
-    # print("World: \n", source_matrix)
-    # print("Offset: \n", offset_matrix)
+    print("Basis: \n", bone.matrix_basis)
+    print("World: \n", source_matrix)
+    print("Offset: \n", offset_matrix)
 
 def apply_group(group):
     for source in group.sources:
@@ -142,8 +144,9 @@ def apply_source(group, source):
     match source.type:
         case SourceType.OBJECT.name:
             source_object: bpy.types.Object = source.source_object
-            matrix = source_object.matrix_world @ get_relative_matrix(group)
+            matrix = get_relative_matrix(group) @ source.transformation
             source_object.matrix_world = matrix
+
         case SourceType.ARMATURE.name:
             for element in source.element_bones:
                 apply_element_bone(group, source, element)
@@ -163,11 +166,11 @@ def apply_element(group, source, element):
 def apply_element_bone(group, source, element):
     source_object: bpy.types.Object = source.source_object
     bone: bpy.types.PoseBone = source_object.pose.bones[element.name]
-    relative_matrix: Matrix = get_relative_matrix(group)
-    matrix = element.transformation @ relative_matrix
+    if bone.parent:
+        return 
+    matrix = get_relative_matrix(group) @ element.transformation
+    matrix = source_object.matrix_world @ matrix
     bone.matrix_basis = matrix
-
-
 
 #
 #
