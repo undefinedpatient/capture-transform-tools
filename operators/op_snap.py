@@ -15,36 +15,23 @@ class ST_OT_snap(bpy.types.Operator):
         ]
     )
     def execute(self, context):
+        if not has_active_group(context):
+            return {"FINISHED"}
+        active_group = get_active_group(context)
         match self.apply_scope:
             case ApplyScope.PRESET.name:
-                self.report({"WARNING"}, message="Not Implemented.")
+                apply_group(active_group)
             case ApplyScope.SOURCE.name:
                 if not has_active_source(context):
                     return {"FINISHED"}
                 active_source = get_active_source(context)
-                active_group = get_active_group(context)
-                source_object: bpy.types.Object = active_source.source_object
-                match active_source.type:
-                    case SourceType.OBJECT.name:
-                        match active_group.snap_type:
-                            case SnapType.LOCATION.name:
-                                if not active_group.relative_object:
-                                    return {"FINISHED"}
-                                relative_matrix: Matrix = Matrix.Translation(active_group.relative_location)
-                                offset_matrix: Matrix = Matrix(active_source.transformation)
-                                applied_matrix = (relative_matrix @ offset_matrix)
-                                source_object.matrix_world = applied_matrix
-                            case SnapType.RELATIVE.name:
-                                if not active_group.relative_object:
-                                    return {"FINISHED"}
-                                relative_matrix: Matrix = Matrix(active_group.relative_object.matrix_world)
-                                offset_matrix: Matrix = Matrix(active_source.transformation)
-                                applied_matrix = (relative_matrix @ offset_matrix)
-                                source_object.matrix_world = applied_matrix
-                
+                apply_source(active_group, active_source)
             case ApplyScope.ELEMENT.name:
-                self.report({"WARNING"}, message="Not Implemented.")
-
+                if not has_active_element(context):
+                    return {"FINISHED"}
+                active_source = get_active_source(context)
+                active_element = get_active_element(context)
+                apply_element(active_group, active_source, active_element)
         return {"FINISHED"}
 
 class ST_OT_capture(bpy.types.Operator):
@@ -67,7 +54,7 @@ class ST_OT_capture(bpy.types.Operator):
         active_group = get_active_group(context)
         match self.capture_scope:
             case CaptureScope.PRESET.name:
-                capture_group(context)
+                capture_group(active_group)
             case CaptureScope.SOURCE.name:
                 if not has_active_source(context):
                     return {"FINISHED"}

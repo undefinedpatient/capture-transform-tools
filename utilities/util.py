@@ -92,12 +92,9 @@ def get_unqiue_name_from_list(name: str, list: list[str]) -> str:
 #
 #
 
-def capture_group(context):
-    if not has_active_group(context):
-        raise RuntimeWarning("No existing active group")
-    active_group = get_active_group(context)
-    for source in active_group.sources:
-        capture_source(active_group, source)
+def capture_group(group):
+    for source in group.sources:
+        capture_source(group, source)
 
 def capture_source(group, source):
     match source.type:
@@ -111,9 +108,12 @@ def capture_source(group, source):
             for element in source.element_bones:
                 capture_element_bone(group, source, element)
         case _:
-            raise RuntimeWarning("Unknown SourceType")
+            raise RuntimeError("Unknown SourceType")
         
 def capture_element(group, source, element):
+    """
+    Take in any element and call the corresponding capture element function.
+    """
     match source.type:
         case SourceType.OBJECT.name:
             raise RuntimeError("OBJECT has no element")
@@ -121,15 +121,53 @@ def capture_element(group, source, element):
             capture_element_bone(group, source, element)
 
 def capture_element_bone(group, source, element):
-    bones = source.source_object.data.bones
-    bone: bpy.types.Bone = bones[element.name]
+    """
+    Specific implementation for bone element.
+    """
+    bones = source.source_object.pose.bones
+    bone: bpy.types.PoseBone = bones[element.name]
     relative_matrix: Matrix = get_relative_matrix(group)
-    source_matrix: Matrix = bone.matrix_local @ source.source_object.matrix_world
+    source_matrix: Matrix = bone.matrix_basis @ source.source_object.matrix_world
     offset_matrix: Matrix = (source_matrix @ relative_matrix.inverted_safe())
     element.transformation = [v for col in offset_matrix.transposed() for v in col]
     # print("Local: \n", bone.matrix_local)
     # print("World: \n", source_matrix)
     # print("Offset: \n", offset_matrix)
+
+def apply_group(group):
+    for source in group.sources:
+        apply_source(group, source)
+
+def apply_source(group, source):
+    match source.type:
+        case SourceType.OBJECT.name:
+            source_object: bpy.types.Object = source.source_object
+            matrix = source_object.matrix_world @ get_relative_matrix(group)
+            source_object.matrix_world = matrix
+        case SourceType.ARMATURE.name:
+            for element in source.element_bones:
+                apply_element_bone(group, source, element)
+        case _:
+            raise RuntimeError("Unknown SourceType")
+
+def apply_element(group, source, element):
+    """
+    Take in any element and call the corresponding apply element function.
+    """
+    match source.type:
+        case SourceType.OBJECT.name:
+            raise RuntimeError("OBJECT has no element")
+        case SourceType.ARMATURE.name:
+            apply_element_bone(group, source, element)
+
+def apply_element_bone(group, source, element):
+    source_object: bpy.types.Object = source.source_object
+    bone: bpy.types.PoseBone = source_object.pose.bones[element.name]
+    relative_matrix: Matrix = get_relative_matrix(group)
+    matrix = element.transformation @ relative_matrix
+    bone.matrix_basis = matrix
+
+
 
 #
 #
