@@ -1,6 +1,6 @@
 import bpy
-
-from .types import SourceType
+from mathutils import Vector, Matrix
+from .types import SourceType, ApplyScope, SnapType
 
 def get_active_group_index(context: bpy.types.Context) -> int:
     return context.scene.snap_tools_settings.active_group_index
@@ -88,3 +88,57 @@ def get_unqiue_name_from_list(name: str, list: list[str]) -> str:
         suffix = "." + str(occurance).rjust(3, '0')
         new_name = name + suffix
     return new_name
+#
+#
+#
+
+def capture_group(context):
+    if not has_active_group(context):
+        raise RuntimeWarning("No existing active group")
+    active_group = get_active_group(context)
+    for source in active_group.sources:
+        capture_source(active_group, source)
+
+def capture_source(group, source):
+    match source.type:
+        case SourceType.OBJECT.name:
+            relative_matrix: Matrix = get_relative_matrix(group)
+            source_object: bpy.types.Object = source.source_object
+            source_matrix: Matrix = source_object.matrix_world
+            offset_matrix: Matrix = (source_matrix @ relative_matrix.inverted_safe())
+            source.transformation = [v for col in offset_matrix.transposed() for v in col]
+        case SourceType.ARMATURE.name:
+            for element in source.element_bones:
+                capture_element_bone(group, source, element)
+        case _:
+            raise RuntimeWarning("Unknown SourceType")
+        
+def capture_element(group, source, element):
+    match source.type:
+        case SourceType.OBJECT.name:
+            raise RuntimeError("OBJECT has no element")
+        case SourceType.ARMATURE.name:
+            capture_element_bone(group, source, element)
+
+def capture_element_bone(group, source, element):
+    bones = source.source_object.data.bones
+    bone: bpy.types.Bone = bones[element.name]
+    relative_matrix: Matrix = get_relative_matrix(group)
+    source_matrix: Matrix = bone.matrix_local @ source.source_object.matrix_world
+    offset_matrix: Matrix = (source_matrix @ relative_matrix.inverted_safe())
+    element.transformation = [v for col in offset_matrix.transposed() for v in col]
+    # print("Local: \n", bone.matrix_local)
+    # print("World: \n", source_matrix)
+    # print("Offset: \n", offset_matrix)
+
+#
+#
+#
+def get_relative_matrix(group) -> Matrix:
+    match group.snap_type:
+        case SnapType.LOCATION.name:
+            return Matrix.Translation(group.relative_location)
+        case SnapType.RELATIVE.name:
+            return group.relative_object.matrix_world
+        case _:
+            raise RuntimeError("Unknown SnapType")

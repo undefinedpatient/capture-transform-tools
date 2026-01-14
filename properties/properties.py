@@ -1,9 +1,6 @@
 import bpy
 from ..utilities import *
 class ST_Element_Bone(bpy.types.PropertyGroup):
-    element: bpy.props.StringProperty(
-        name="bone"
-    )
     transformation: bpy.props.FloatVectorProperty(
         name="transformation",
         size=16,
