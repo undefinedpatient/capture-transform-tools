@@ -165,12 +165,20 @@ def apply_element(group, source, element):
 
 def apply_element_bone(group, source, element):
     source_object: bpy.types.Object = source.source_object
-    bone: bpy.types.PoseBone = source_object.pose.bones[element.name]
-    if bone.parent:
-        return 
-    matrix = get_relative_matrix(group) @ element.transformation
-    matrix = source_object.matrix_world @ matrix
-    bone.matrix_basis = matrix
+    bone: bpy.types.Bone = source_object.data.bones[element.name]
+    pose_bone: bpy.types.PoseBone = source_object.pose.bones[element.name]
+    if pose_bone.parent:
+        (location, rotation, scale) = Matrix.decompose(element.transformation)
+        matrix: Matrix = Matrix()
+        matrix = Matrix.LocRotScale(None, rotation, scale)
+        matrix = get_relative_matrix(group) @ element.transformation
+        matrix = source_object.matrix_world @ matrix
+        pose_bone.matrix_basis = matrix
+    
+    else:
+        matrix = get_relative_matrix(group) @ element.transformation
+        matrix = source_object.matrix_world @ matrix
+        pose_bone.matrix_basis = matrix
 
 #
 #
