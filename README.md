@@ -1,4 +1,4 @@
-# Snap Tools (0.0.1)
+# Global Transform Capture Tools (0.0.1)
 This addon aims to extend beyond Blender `copy Global Transform` funtionality. Allowing user to store it in groups!
 
 # Status
@@ -16,3 +16,5 @@ You can simply download this as zip file, and pull the zip file into your Blende
 ### Element
 - Only when the source type is `Armature`, should be showing a list of bones to be captured.
 - Ignored if the source type is `Object`, since the object itself is the element to be captured.
+### Notes
+- There are three separate pairs of Capture/Apply button, allowing user to do Capture/Apply operations on different scopes.

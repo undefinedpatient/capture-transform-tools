@@ -1,6 +1,6 @@
 import bpy
 from mathutils import Vector, Matrix
-from .types import SourceType, ApplyScope, SnapType
+from .types import SourceType, ApplyScope, CaptureType
 
 def get_active_group_index(context: bpy.types.Context) -> int:
     return context.scene.snap_tools_settings.active_group_index
@@ -128,12 +128,13 @@ def capture_element_bone(group, source, element):
     bones = source.source_object.pose.bones
     bone: bpy.types.PoseBone = bones[element.name]
     relative_matrix: Matrix = get_relative_matrix(group)
-    source_matrix: Matrix = source.source_object.matrix_world.inverted_safe() @ bone.matrix_basis
-    offset_matrix: Matrix = (relative_matrix.inverted_safe() @ source_matrix)
+    object_source_matrix: Matrix = source.source_object.matrix_world
+    element_source_matrix: Matrix = object_source_matrix @ bone.matrix
+    offset_matrix: Matrix = (relative_matrix.inverted_safe() @ element_source_matrix)
 
     element.transformation = [v for col in offset_matrix.transposed() for v in col]
-    print("Basis: \n", bone.matrix_basis)
-    print("World: \n", source_matrix)
+    print("PoseSpace: \n", bone.matrix)
+    print("Object WorldSpace: \n", source.source_object.matrix_world)
     print("Offset: \n", offset_matrix)
 
 def apply_group(group):
@@ -172,22 +173,27 @@ def apply_element_bone(group, source, element):
         matrix: Matrix = Matrix()
         matrix = Matrix.LocRotScale(None, rotation, scale)
         matrix = get_relative_matrix(group) @ element.transformation
-        matrix = source_object.matrix_world @ matrix
+        matrix = source_object.matrix_world.inverted_safe() @ matrix
         pose_bone.matrix_basis = matrix
     
     else:
-        matrix = get_relative_matrix(group) @ element.transformation
-        matrix = source_object.matrix_world @ matrix
-        pose_bone.matrix_basis = matrix
+        matrix: Matrix = get_relative_matrix(group) @ element.transformation
+        matrix = source_object.matrix_world.inverted_safe() @ matrix
+
+        pose_bone.matrix = matrix
 
 #
 #
 #
 def get_relative_matrix(group) -> Matrix:
     match group.snap_type:
-        case SnapType.LOCATION.name:
+        case CaptureType.LOCATION.name:
             return Matrix.Translation(group.relative_location)
-        case SnapType.RELATIVE.name:
+        case CaptureType.RELATIVE_OBJECT.name:
             return group.relative_object.matrix_world
+        case CaptureType.RELATIVE_BONE.name:
+            relative_object: bpy.types.Object = group.relative_object
+            relative_bone: bpy.types.PoseBone = relative_object.pose.bones[group.relative_bone]
+            return relative_bone.matrix
         case _:
             raise RuntimeError("Unknown SnapType")

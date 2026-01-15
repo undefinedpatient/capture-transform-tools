@@ -3,9 +3,9 @@ from ..utilities import *
 class ST_PT_snap_tools(bpy.types.Panel):
     bl_space_type = "VIEW_3D"    
     bl_region_type = "UI"
-    bl_label = "Snap Tools"
-    bl_idname = "BS_PT_snap_tools"
-    bl_category = "Snap Tools"
+    bl_label = "Capture Global Transform Tools"
+    bl_idname = "CGTT_PT_capture_global_transform_tools"
+    bl_category = "Capture Tools"
     bl_order = 1
     def draw_group_section(self, context):
         props = context.scene.snap_tools_settings
@@ -169,10 +169,20 @@ class ST_PT_snap_tools(bpy.types.Panel):
             row_snap_type = layout.column_flow(columns=1)
             row_snap_type.props_enum(active_group, "snap_type")
             match active_group.snap_type:
-                case SnapType.LOCATION.name:
+                case CaptureType.LOCATION.name:
                     layout.prop(active_group, "relative_location", text="")
-                case SnapType.RELATIVE.name:
+                case CaptureType.RELATIVE_OBJECT.name:
                     layout.prop(active_group, "relative_object", text="")
+                case CaptureType.RELATIVE_BONE.name:
+                    layout.prop(active_group, "relative_object", text="")
+                    if active_group.relative_object:
+                        layout.prop_search(
+                            data=active_group, 
+                            property="relative_bone", 
+                            search_data=active_group.relative_object.data,
+                            search_property="bones",
+                            text=""
+                        )
         else:
             layout.label(text="You need to pick a source")
 

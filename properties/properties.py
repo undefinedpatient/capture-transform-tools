@@ -65,8 +65,9 @@ class ST_Group(bpy.types.PropertyGroup):
     snap_type: bpy.props.EnumProperty(
         name="Snap Type",
         items=[
-            (SnapType.LOCATION.name, "Location", "Empty", "ORIENTATION_GLOBAL", 0),
-            (SnapType.RELATIVE.name, "Relative", "Empty", "PIVOT_ACTIVE", 1),
+            (CaptureType.LOCATION.name, "Location", "Empty", "ORIENTATION_GLOBAL", 0),
+            (CaptureType.RELATIVE_OBJECT.name, "Relative (Object)", "Empty", "PIVOT_ACTIVE", 1),
+            (CaptureType.RELATIVE_BONE.name, "Relative (Bone)", "Empty", "BONE_DATA", 2),
         ]
     )
     relative_location: bpy.props.FloatVectorProperty(
@@ -84,17 +85,6 @@ class ST_Group(bpy.types.PropertyGroup):
         name="Relative Vertex Group"
     )
 
-    # captured_relative_matrix: bpy.props.FloatVectorProperty(
-    #     name="Captured Relative Matrix",
-    #     size=16,
-    #     default=(
-    #         1,0,0,0,
-    #         0,1,0,0,
-    #         0,0,1,0,
-    #         0,0,0,1
-    #     ),
-    #     subtype="MATRIX"
-    # )
 class ST_PropertyGroup(bpy.types.PropertyGroup):
     groups: bpy.props.CollectionProperty(type=ST_Group, name= "groups")
     active_group_index: bpy.props.IntProperty(
