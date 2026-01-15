@@ -3,9 +3,9 @@ from ..utilities import *
 class CT_PT_capture_transform_tools(bpy.types.Panel):
     bl_space_type = "VIEW_3D"    
     bl_region_type = "UI"
-    bl_label = "Capture Global Transform Tools"
-    bl_idname = "CT_PT_capture_global_transform_tools"
-    bl_category = "Capture Tools"
+    bl_label = "Capture Transform"
+    bl_idname = "CT_PT_transform_capture_tools"
+    bl_category = "Capture Transform"
     bl_order = 1
     def draw_group_section(self, context):
         props = context.scene.capture_transform_tools_settings

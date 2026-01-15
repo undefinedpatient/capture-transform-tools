@@ -1,4 +1,4 @@
-# Global Transform Capture Tools (0.0.1)
+# Capture Transform Tools (0.0.1)
 This addon aims to extend beyond Blender `copy Global Transform` funtionality. Allowing user to store it in groups!
 
 # Status
