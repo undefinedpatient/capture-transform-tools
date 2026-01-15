@@ -1,6 +1,6 @@
 import bpy
 from ..utilities import *
-class CT_UL_snap_elements(bpy.types.UIList):
+class CT_UL_capture_elements(bpy.types.UIList):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     layout_type="DEFAULT"
@@ -12,9 +12,9 @@ class CT_UL_snap_elements(bpy.types.UIList):
         element_name = "<empty>" if item.name == "" else item.name
         row_item.label(text=element_name,  icon="BONE_DATA")
         row_item.separator()
-        row_item.prop(data=item, property="is_locked", icon="LOCKED" if item.is_locked else "UNLOCKED", text="", emboss=False)
+        # row_item.prop(data=item, property="enabled", text='')
 
-class CT_UL_snap_sources(bpy.types.UIList):
+class CT_UL_capture_sources(bpy.types.UIList):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     layout_type="DEFAULT"
@@ -22,7 +22,7 @@ class CT_UL_snap_sources(bpy.types.UIList):
         row_item = layout.row()
         if not is_source_valid(item):
             row_item.alert = True
-        source_name = "<empty>" if item.name == "" else item.name
+        source_name = "<empty>" if item.source_object == None else item.source_object.name
         if getattr(active_data, active_property)==index:
             row_item.label(text=source_name, icon="RADIOBUT_ON")
         else:
@@ -30,7 +30,7 @@ class CT_UL_snap_sources(bpy.types.UIList):
         # row_item.prop(data=item, property="source_object")
         row_item.prop(data=item, property="type", text="", emboss=False, expand=False)
 
-class CT_UL_snap_groups(bpy.types.UIList):
+class CT_UL_capture_groups(bpy.types.UIList):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     layout_type="DEFAULT"
@@ -44,9 +44,9 @@ class CT_UL_snap_groups(bpy.types.UIList):
     
 
 _classes = [
-    CT_UL_snap_elements,
-    CT_UL_snap_sources,
-    CT_UL_snap_groups
+    CT_UL_capture_elements,
+    CT_UL_capture_sources,
+    CT_UL_capture_groups
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

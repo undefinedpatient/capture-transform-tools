@@ -16,6 +16,10 @@ class CT_Element_Bone(bpy.types.PropertyGroup):
         name="Is Locked",
         default=False
     )
+    enabled: bpy.props.BoolProperty(
+        name="Enabled",
+        default=True
+    )
 
 class CT_SnapSource(bpy.types.PropertyGroup):
     # Type of source
@@ -109,8 +113,8 @@ _register, _unregister = bpy.utils.register_classes_factory(_classes)
 
 def register():
     _register()
-    bpy.types.Scene.capture_global_transform_tools_settings = bpy.props.PointerProperty(type=ST_PropertyGroup, name="Snap Tools Settings")
+    bpy.types.Scene.capture_transform_tools_settings = bpy.props.PointerProperty(type=ST_PropertyGroup, name="Snap Tools Settings")
 
 def unregister():
-    del bpy.types.Scene.capture_global_transform_tools_settings
+    del bpy.types.Scene.capture_transform_tools_settings
     _unregister()

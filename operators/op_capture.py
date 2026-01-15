@@ -3,7 +3,7 @@ from mathutils import Vector, Matrix
 from ..utilities import *
 
 class CT_OT_apply(bpy.types.Operator):
-    bl_idname = "capture_global_transform_tools.apply"
+    bl_idname = "capture_transform_tools.apply"
     bl_label = "Apply"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
@@ -48,7 +48,7 @@ class CT_OT_apply(bpy.types.Operator):
         return {"FINISHED"}
 
 class CT_OT_capture(bpy.types.Operator):
-    bl_idname = "capture_global_transform_tools.capture"
+    bl_idname = "capture_transform_tools.capture"
     bl_label = "Capture"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
@@ -93,13 +93,13 @@ class CT_OT_capture(bpy.types.Operator):
 
         return {"FINISHED"}
 
-class CT_OT_snap_group_add(bpy.types.Operator):
-    bl_idname = "capture_global_transform_tools.snap_group_add"
+class CT_OT_capture_group_add(bpy.types.Operator):
+    bl_idname = "capture_transform_tools.capture_group_add"
     bl_label = "Capture Group Add"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
     def execute(self, context):
-        props = context.scene.capture_global_transform_tools_settings
+        props = context.scene.capture_transform_tools_settings
         new_group = props.groups.add()
         new_group.name = get_unqiue_name_from_list("group", list(map(lambda g: g.name,props.groups)))
         # If it is a newly added group, set the active group index to 0
@@ -107,8 +107,8 @@ class CT_OT_snap_group_add(bpy.types.Operator):
             props.active_group_index = 0
         return {"FINISHED"}
 
-class CT_OT_snap_source_add(bpy.types.Operator):
-    bl_idname = "capture_global_transform_tools.snap_source_add"
+class CT_OT_capture_source_add(bpy.types.Operator):
+    bl_idname = "capture_transform_tools.capture_source_add"
     bl_label = "Capture Source Add"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
@@ -123,11 +123,11 @@ class CT_OT_snap_source_add(bpy.types.Operator):
     )
 
     def execute(self, context):
-        props = context.scene.capture_global_transform_tools_settings
+        props = context.scene.capture_transform_tools_settings
 
         if len(props.groups) == 0:
             self.report(type={"INFO"}, message="No Group exist, created one.")
-            bpy.ops.capture_global_transform_tools.snap_group_add()
+            bpy.ops.capture_transform_tools.capture_group_add()
         active_group_index = props.active_group_index
         active_group = props.groups[active_group_index]
 
@@ -156,8 +156,8 @@ class CT_OT_snap_source_add(bpy.types.Operator):
 
         return {"FINISHED"}
 
-class CT_OT_snap_element_add(bpy.types.Operator):
-    bl_idname = "capture_global_transform_tools.snap_element_add"
+class CT_OT_capture_element_add(bpy.types.Operator):
+    bl_idname = "capture_transform_tools.capture_element_add"
     bl_label = "Capture Source Add Elements"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
@@ -172,7 +172,7 @@ class CT_OT_snap_element_add(bpy.types.Operator):
     )
     # User should not be abled to select the type of element, so take it from scene
     def execute(self, context):
-        props = context.scene.capture_global_transform_tools_settings
+        props = context.scene.capture_transform_tools_settings
         active_group = props.groups[props.active_group_index]
         active_source = active_group.sources[active_group.active_source_index]
         source_object: bpy.types.Object = active_source.source_object
@@ -205,13 +205,13 @@ class CT_OT_snap_element_add(bpy.types.Operator):
                     element = active_source.element_bones.add()
         return {"FINISHED"}
 
-class CT_OT_snap_group_remove(bpy.types.Operator):
-    bl_idname = "capture_global_transform_tools.snap_group_remove"
+class CT_OT_capture_group_remove(bpy.types.Operator):
+    bl_idname = "capture_transform_tools.capture_group_remove"
     bl_label = "Capture group Remove"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
     def execute(self, context):
-        props = context.scene.capture_global_transform_tools_settings
+        props = context.scene.capture_transform_tools_settings
         if not has_active_group(context):
             return {"FINISHED"}
         active_group_index = props.active_group_index
@@ -219,13 +219,13 @@ class CT_OT_snap_group_remove(bpy.types.Operator):
         props.groups.remove(active_group_index)
         return {"FINISHED"}
     
-class CT_OT_snap_source_remove(bpy.types.Operator):
-    bl_idname = "capture_global_transform_tools.snap_source_remove"
+class CT_OT_capture_source_remove(bpy.types.Operator):
+    bl_idname = "capture_transform_tools.capture_source_remove"
     bl_label = "Capture Source Remove"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
     def execute(self, context):
-        props = context.scene.capture_global_transform_tools_settings
+        props = context.scene.capture_transform_tools_settings
         if not has_active_source(context):
             return {"FINISHED"}
         if len(props.groups) == 0 or len(props.groups[props.active_group_index].sources) == 0:
@@ -239,8 +239,8 @@ class CT_OT_snap_source_remove(bpy.types.Operator):
 
         return {"FINISHED"}
 
-class CT_OT_snap_element_remove(bpy.types.Operator):
-    bl_idname = "capture_global_transform_tools.snap_element_remove"
+class CT_OT_capture_element_remove(bpy.types.Operator):
+    bl_idname = "capture_transform_tools.capture_element_remove"
     bl_label = "Capture Source Remove Elements"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
@@ -260,12 +260,12 @@ class CT_OT_snap_element_remove(bpy.types.Operator):
 _classes = [
     CT_OT_apply,
     CT_OT_capture,
-    CT_OT_snap_group_add,
-    CT_OT_snap_source_add,
-    CT_OT_snap_element_add,
-    CT_OT_snap_group_remove,
-    CT_OT_snap_source_remove,
-    CT_OT_snap_element_remove
+    CT_OT_capture_group_add,
+    CT_OT_capture_source_add,
+    CT_OT_capture_element_add,
+    CT_OT_capture_group_remove,
+    CT_OT_capture_source_remove,
+    CT_OT_capture_element_remove
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

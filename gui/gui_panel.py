@@ -1,6 +1,6 @@
 import bpy
 from ..utilities import *
-class CT_PT_capture_global_transform_tools(bpy.types.Panel):
+class CT_PT_capture_transform_tools(bpy.types.Panel):
     bl_space_type = "VIEW_3D"    
     bl_region_type = "UI"
     bl_label = "Capture Global Transform Tools"
@@ -8,7 +8,7 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
     bl_category = "Capture Tools"
     bl_order = 1
     def draw_group_section(self, context):
-        props = context.scene.capture_global_transform_tools_settings
+        props = context.scene.capture_transform_tools_settings
 
         group_section = self.layout
         group_section.label(icon="OUTLINER_COLLECTION", text="Group")
@@ -16,7 +16,7 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
         # Left Column contains the source list
         col_group_list = row_groups.column()
         col_group_list.template_list(
-            listtype_name="CT_UL_snap_groups",
+            listtype_name="CT_UL_capture_groups",
             list_id="group_list",
             dataptr=props,
             propname="groups",
@@ -26,22 +26,22 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
         )
         row_op_capture = col_group_list.row()
         row_op_apply = col_group_list.row()
-        op_capture = row_op_capture.operator(operator="capture_global_transform_tools.capture", icon="COPYDOWN", text="Capture (Group)")
+        op_capture = row_op_capture.operator(operator="capture_transform_tools.capture", icon="COPYDOWN", text="Capture (Group)")
         op_capture.capture_scope = CaptureScope.PRESET.name
-        op_apply = row_op_apply.operator(operator="capture_global_transform_tools.apply", icon="PASTEDOWN", text="Apply (Group)")
+        op_apply = row_op_apply.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply (Group)")
         op_apply.apply_scope = ApplyScope.PRESET.name
         # Right Column contains the actions
         col_group_actions = row_groups.column()
         row_group_add = col_group_actions.row()
         row_group_remove = col_group_actions.row()
-        op_group_add = row_group_add.operator(operator="capture_global_transform_tools.snap_group_add", icon="ADD", text="")
-        op_group_remove = row_group_remove.operator(operator="capture_global_transform_tools.snap_group_remove", icon="REMOVE", text="")
+        op_group_add = row_group_add.operator(operator="capture_transform_tools.capture_group_add", icon="ADD", text="")
+        op_group_remove = row_group_remove.operator(operator="capture_transform_tools.capture_group_remove", icon="REMOVE", text="")
         row_group_remove.enabled = has_active_group(context)
 
         group_section.separator(type="LINE")
 
     def draw_source_section(self, context):
-        props = context.scene.capture_global_transform_tools_settings
+        props = context.scene.capture_transform_tools_settings
         if has_active_group(context):
             active_group = get_active_group(context)
             source_section = self.layout
@@ -51,7 +51,7 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
             # Left Column contains the source list
             col_source_list = row_sources.column()
             col_source_list.template_list(
-                listtype_name="CT_UL_snap_sources",
+                listtype_name="CT_UL_capture_sources",
                 list_id="source_list",
                 dataptr=active_group,
                 propname="sources",
@@ -72,34 +72,34 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
                     text=""
                 )
             row_add_ops = col_source_list.row()
-            op_add_active = row_add_ops.operator(operator="capture_global_transform_tools.snap_source_add", text="Add Active")
+            op_add_active = row_add_ops.operator(operator="capture_transform_tools.capture_source_add", text="Add Active")
             op_add_active.is_blank = False
             op_add_active.only_active = True
-            op_add_selected = row_add_ops.operator(operator="capture_global_transform_tools.snap_source_add", text="Add Selected")
+            op_add_selected = row_add_ops.operator(operator="capture_transform_tools.capture_source_add", text="Add Selected")
             op_add_selected.is_blank = False
             op_add_selected.only_active = False
 
 
             row_op_capture = col_source_list.row()
             row_op_apply = col_source_list.row()
-            op_capture = row_op_capture.operator(operator="capture_global_transform_tools.capture", icon="COPYDOWN", text="Capture (Source)")
+            op_capture = row_op_capture.operator(operator="capture_transform_tools.capture", icon="COPYDOWN", text="Capture (Source)")
             op_capture.capture_scope = CaptureScope.SOURCE.name
-            op_apply = row_op_apply.operator(operator="capture_global_transform_tools.apply", icon="PASTEDOWN", text="Apply (Source)")
+            op_apply = row_op_apply.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply (Source)")
             op_apply.apply_scope = ApplyScope.SOURCE.name
             # Right Column contains +/-
             col_source_actions = row_sources.column()
             row_source_add = col_source_actions.row()
             row_source_remove = col_source_actions.row()
-            op_source_add = row_source_add.operator(operator="capture_global_transform_tools.snap_source_add", icon="ADD", text="")
+            op_source_add = row_source_add.operator(operator="capture_transform_tools.capture_source_add", icon="ADD", text="")
             op_source_add.is_blank = True
-            op_snap_source_remove = row_source_remove.operator(operator="capture_global_transform_tools.snap_source_remove", icon="REMOVE", text="")
+            op_capture_source_remove = row_source_remove.operator(operator="capture_transform_tools.capture_source_remove", icon="REMOVE", text="")
             row_source_remove.enabled = has_active_source(context)
             source_section.separator()
         else:
             return
 
     def draw_element_section(self, context):
-        props = context.scene.capture_global_transform_tools_settings
+        props = context.scene.capture_transform_tools_settings
         if has_active_source(context):
             active_source = get_active_source(context)
             layout = self.layout
@@ -117,7 +117,7 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
                     # Left Column contains the element list
                     col_element_list = row_element.column()
                     col_element_list.template_list(
-                        listtype_name="CT_UL_snap_elements",
+                        listtype_name="CT_UL_capture_elements",
                         list_id="element_list",
                         dataptr=active_source,
                         propname="element_bones",
@@ -132,23 +132,23 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
                             property="name",
                             search_data=active_source.source_object.data,
                             search_property="bones",
-                            text="Bone"
+                            text=""
                         )
                     row_add_ops = col_element_list.row()
                     col_add_active = row_add_ops.column()
                     col_add_selected = row_add_ops.column()
-                    op_add_active = col_add_active.operator(operator="capture_global_transform_tools.snap_element_add", text="Add Active")
+                    op_add_active = col_add_active.operator(operator="capture_transform_tools.capture_element_add", text="Add Active")
                     op_add_active.only_active = True
                     op_add_active.is_blank = False 
-                    op_add_selected = col_add_selected.operator(operator="capture_global_transform_tools.snap_element_add", text="Add Selected")
+                    op_add_selected = col_add_selected.operator(operator="capture_transform_tools.capture_element_add", text="Add Selected")
                     op_add_selected.only_active = False
                     op_add_selected.is_blank = False 
 
                     row_op_capture = col_element_list.row()
                     row_op_apply = col_element_list.row()
-                    op_capture = row_op_capture.operator(operator="capture_global_transform_tools.capture", icon="COPYDOWN", text="Capture (Element)")
+                    op_capture = row_op_capture.operator(operator="capture_transform_tools.capture", icon="COPYDOWN", text="Capture (Element)")
                     op_capture.capture_scope = CaptureScope.ELEMENT.name
-                    op_apply = row_op_apply.operator(operator="capture_global_transform_tools.apply", icon="PASTEDOWN", text="Apply")
+                    op_apply = row_op_apply.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply (Element)")
                     op_apply.apply_scope = ApplyScope.ELEMENT.name
                     # col_add_selected.enabled = active_source.source_object == context.active_object
 
@@ -157,19 +157,18 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
                     col_element_actions = row_element.column()
                     row_element_add = col_element_actions.row()
                     row_element_remove = col_element_actions.row()
-                    op_snap_element_add = row_element_add.operator(operator="capture_global_transform_tools.snap_element_add", icon="ADD", text="")
-                    op_snap_element_add.is_blank = True
-                    op_snap_element_remove = row_element_remove.operator(operator="capture_global_transform_tools.snap_element_remove", icon="REMOVE", text="")
+                    op_capture_element_add = row_element_add.operator(operator="capture_transform_tools.capture_element_add", icon="ADD", text="")
+                    op_capture_element_add.is_blank = True
+                    op_capture_element_remove = row_element_remove.operator(operator="capture_transform_tools.capture_element_remove", icon="REMOVE", text="")
                     row_element_remove.enabled = has_active_element(context)
 
     def draw_settings(self, context):
-        props = context.scene.capture_global_transform_tools_settings
+        props = context.scene.capture_transform_tools_settings
         layout = self.layout
         layout.separator(type="LINE")
         layout.label(icon="SETTINGS",text="Group Settings")
-        if has_active_source(context):
+        if has_active_group(context):
             active_group = get_active_group(context)
-            active_source = get_active_source(context)
             row_capture_type = layout.column_flow(columns=1)
             row_capture_type.props_enum(active_group, "capture_type")
             match active_group.capture_type:
@@ -191,7 +190,7 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
                                 text=""
                             )
         else:
-            layout.label(text="You need to pick a source")
+            layout.label(text="Create a group first.")
 
     def draw(self, context):
         layout = self.layout
@@ -203,7 +202,7 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
 
 
 _classes = [
-    CT_PT_capture_global_transform_tools
+    CT_PT_capture_transform_tools
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

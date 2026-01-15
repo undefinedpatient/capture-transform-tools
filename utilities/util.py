@@ -3,14 +3,14 @@ from mathutils import Vector, Matrix
 from .types import SourceType, ApplyScope, CaptureType
 
 def get_active_group_index(context: bpy.types.Context) -> int:
-    return context.scene.capture_global_transform_tools_settings.active_group_index
+    return context.scene.capture_transform_tools_settings.active_group_index
 
 def has_active_group(context:bpy.types.Context) -> bool:
     return get_active_group_index(context) != -1
 
 def get_active_group(context:bpy.types.Context):
     if has_active_group(context):
-        return context.scene.capture_global_transform_tools_settings.groups[get_active_group_index(context)]
+        return context.scene.capture_transform_tools_settings.groups[get_active_group_index(context)]
     else:
         raise RuntimeError("No active group!")
     
