@@ -1,11 +1,15 @@
 import bpy
 from ..utilities import *
-class ST_UL_snap_elements(bpy.types.UIList):
+class CT_UL_snap_elements(bpy.types.UIList):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
     layout_type="DEFAULT"
     def draw_item(self, context, layout, data, item, icon, active_data, active_property, index, flt_flag):
-        layout.prop(data=item, property="name", icon="BONE_DATA", text="", emboss=False)
+        layout.label(text=item.name,  icon="BONE_DATA")
 
-class ST_UL_snap_sources(bpy.types.UIList):
+class CT_UL_snap_sources(bpy.types.UIList):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
     layout_type="DEFAULT"
     def draw_item(self, context, layout, data, item, icon, active_data, active_property, index, flt_flag):
         row_item = layout.row()
@@ -18,7 +22,9 @@ class ST_UL_snap_sources(bpy.types.UIList):
         # row_item.prop(data=item, property="source_object")
         row_item.prop(data=item, property="type", text="", emboss=False, expand=False)
 
-class ST_UL_snap_groups(bpy.types.UIList):
+class CT_UL_snap_groups(bpy.types.UIList):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
     layout_type="DEFAULT"
     def draw_item(self, context, layout, data, item, icon, active_data, active_property, index, flt_flag):
 
@@ -27,11 +33,12 @@ class ST_UL_snap_groups(bpy.types.UIList):
             row_item.prop(data=item, property="name", icon="RADIOBUT_ON", text="", emboss=False)
         else:
             row_item.prop(data=item, property="name", icon="RADIOBUT_OFF", text="", emboss=False)
+    
 
 _classes = [
-    ST_UL_snap_elements,
-    ST_UL_snap_sources,
-    ST_UL_snap_groups
+    CT_UL_snap_elements,
+    CT_UL_snap_sources,
+    CT_UL_snap_groups
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

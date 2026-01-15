@@ -3,14 +3,14 @@ from mathutils import Vector, Matrix
 from .types import SourceType, ApplyScope, CaptureType
 
 def get_active_group_index(context: bpy.types.Context) -> int:
-    return context.scene.snap_tools_settings.active_group_index
+    return context.scene.capture_global_transform_tools_settings.active_group_index
 
 def has_active_group(context:bpy.types.Context) -> bool:
     return get_active_group_index(context) != -1
 
 def get_active_group(context:bpy.types.Context):
     if has_active_group(context):
-        return context.scene.snap_tools_settings.groups[get_active_group_index(context)]
+        return context.scene.capture_global_transform_tools_settings.groups[get_active_group_index(context)]
     else:
         raise RuntimeError("No active group!")
     
@@ -174,7 +174,7 @@ def apply_element_bone(group, source, element):
         matrix = Matrix.LocRotScale(None, rotation, scale)
         matrix = get_relative_matrix(group) @ element.transformation
         matrix = source_object.matrix_world.inverted_safe() @ matrix
-        pose_bone.matrix_basis = matrix
+        pose_bone.matrix = matrix
     
     else:
         matrix: Matrix = get_relative_matrix(group) @ element.transformation
@@ -184,9 +184,7 @@ def apply_element_bone(group, source, element):
 
 #
 #
-#
-def get_relative_matrix(group) -> Matrix:
-    match group.snap_type:
+    match group.capture_type:
         case CaptureType.LOCATION.name:
             return Matrix.Translation(group.relative_location)
         case CaptureType.RELATIVE_OBJECT.name:
@@ -197,3 +195,27 @@ def get_relative_matrix(group) -> Matrix:
             return relative_bone.matrix
         case _:
             raise RuntimeError("Unknown SnapType")
+        
+#
+#   Validation
+#
+def is_group_settings_valid(group) -> bool:
+    match group.capture_type:
+        case CaptureType.LOCATION.name:
+            return True
+        case CaptureType.RELATIVE_OBJECT.name:
+            return True
+        case CaptureType.RELATIVE_BONE.name:
+            if group.relative_object.type != "ARMATURE" or group.relative_bone == "":
+                return False
+            return True
+    return False 
+def is_source_valid(source) -> bool:
+    match source.type:
+        case SourceType.OBJECT.name:
+            return True
+        case SourceType.ARMATURE.name:
+            return True
+    return False
+def is_capture_element_requirement_fulfilled(context: bpy.types.Context) -> bool:
+    return True

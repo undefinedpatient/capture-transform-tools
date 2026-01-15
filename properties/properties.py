@@ -1,6 +1,6 @@
 import bpy
 from ..utilities import *
-class ST_Element_Bone(bpy.types.PropertyGroup):
+class CT_Element_Bone(bpy.types.PropertyGroup):
     transformation: bpy.props.FloatVectorProperty(
         name="transformation",
         size=16,
@@ -13,7 +13,7 @@ class ST_Element_Bone(bpy.types.PropertyGroup):
         subtype="MATRIX"
     )
 
-class ST_SnapSource(bpy.types.PropertyGroup):
+class CT_SnapSource(bpy.types.PropertyGroup):
     # Type of source
     type: bpy.props.EnumProperty(
         items=[
@@ -47,13 +47,13 @@ class ST_SnapSource(bpy.types.PropertyGroup):
     #   Elements
     #
     element_bones: bpy.props.CollectionProperty(
-        type=ST_Element_Bone,
+        type=CT_Element_Bone,
         name="Element Bones"
     )
 
-class ST_Group(bpy.types.PropertyGroup):
+class CT_Group(bpy.types.PropertyGroup):
     sources: bpy.props.CollectionProperty(
-        type=ST_SnapSource,
+        type=CT_SnapSource,
         name="Sources"
     )
     active_source_index: bpy.props.IntProperty(
@@ -62,7 +62,7 @@ class ST_Group(bpy.types.PropertyGroup):
     )
 
     # Type of snapping, either absolute location in global space, or offset with objects
-    snap_type: bpy.props.EnumProperty(
+    capture_type: bpy.props.EnumProperty(
         name="Snap Type",
         items=[
             (CaptureType.LOCATION.name, "Location", "Empty", "ORIENTATION_GLOBAL", 0),
@@ -86,7 +86,7 @@ class ST_Group(bpy.types.PropertyGroup):
     )
 
 class ST_PropertyGroup(bpy.types.PropertyGroup):
-    groups: bpy.props.CollectionProperty(type=ST_Group, name= "groups")
+    groups: bpy.props.CollectionProperty(type=CT_Group, name= "groups")
     active_group_index: bpy.props.IntProperty(
         name="Active group Index",
         default=-1
@@ -94,9 +94,9 @@ class ST_PropertyGroup(bpy.types.PropertyGroup):
 
 
 _classes = [
-    ST_Element_Bone,
-    ST_SnapSource,
-    ST_Group,
+    CT_Element_Bone,
+    CT_SnapSource,
+    CT_Group,
     ST_PropertyGroup
 ]
 
@@ -105,8 +105,8 @@ _register, _unregister = bpy.utils.register_classes_factory(_classes)
 
 def register():
     _register()
-    bpy.types.Scene.snap_tools_settings = bpy.props.PointerProperty(type=ST_PropertyGroup, name="Snap Tools Settings")
+    bpy.types.Scene.capture_global_transform_tools_settings = bpy.props.PointerProperty(type=ST_PropertyGroup, name="Snap Tools Settings")
 
 def unregister():
-    del bpy.types.Scene.snap_tools_settings
+    del bpy.types.Scene.capture_global_transform_tools_settings
     _unregister()
