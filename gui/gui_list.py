@@ -13,7 +13,7 @@ class CT_UL_snap_sources(bpy.types.UIList):
     layout_type="DEFAULT"
     def draw_item(self, context, layout, data, item, icon, active_data, active_property, index, flt_flag):
         row_item = layout.row()
-        if has_source_object(item) and not is_source_type_valid(item):
+        if not is_source_valid(item):
             row_item.alert = True
         if getattr(active_data, active_property)==index:
             row_item.prop(data=item, property="name", icon="RADIOBUT_ON", text="", emboss=False)

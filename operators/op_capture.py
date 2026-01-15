@@ -2,9 +2,9 @@ import bpy
 from mathutils import Vector, Matrix
 from ..utilities import *
 
-class CT_OT_snap(bpy.types.Operator):
-    bl_idname = "capture_global_transform_tools.snap"
-    bl_label = "Snap"
+class CT_OT_apply(bpy.types.Operator):
+    bl_idname = "capture_global_transform_tools.apply"
+    bl_label = "Apply"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
     apply_scope: bpy.props.EnumProperty(
@@ -16,19 +16,32 @@ class CT_OT_snap(bpy.types.Operator):
     )
     def execute(self, context):
         if not has_active_group(context):
-            return {"FINISHED"}
+            self.report(type={"WARNING"}, message="No group selected!")
+            return {"CANCELLED"}
         active_group = get_active_group(context)
+        if not is_group_settings_valid(active_group):
+            self.report(type={"WARNING"}, message="Invalid Group Setting!")
+            return {"CANCELLED"}
         match self.apply_scope:
             case ApplyScope.PRESET.name:
+                if len(active_group.sources) == 0:
+                    self.report(type={"INFO"}, message="Empty Group")
+                    return {"CANCELLED"}
                 apply_group(active_group)
             case ApplyScope.SOURCE.name:
                 if not has_active_source(context):
-                    return {"FINISHED"}
+                    self.report(type={"INFO"}, message="No source selected!")
+                    return {"CANCELLED"}
                 active_source = get_active_source(context)
+                if not is_source_valid(active_source):
+                    self.report(type={"WARNING"}, message="Invalid source!")
+                    return {"CANCELLED"}
                 apply_source(active_group, active_source)
+
             case ApplyScope.ELEMENT.name:
                 if not has_active_element(context):
-                    return {"FINISHED"}
+                    self.report(type={"WARNING"}, message="No element selected!")
+                    return {"CANCELLED"}
                 active_source = get_active_source(context)
                 active_element = get_active_element(context)
                 apply_element(active_group, active_source, active_element)
@@ -50,22 +63,34 @@ class CT_OT_capture(bpy.types.Operator):
 
     def execute(self, context):
         if not has_active_group(context):
-            return {"FINISHED"}
+            return {"CANCELLED"}
         active_group = get_active_group(context)
+        if not is_group_settings_valid(active_group):
+            self.report(type={"WARNING"}, message="Invalid Group Setting!")
+            return {"CANCELLED"}
         match self.capture_scope:
             case CaptureScope.PRESET.name:
+                if len(active_group.sources) == 0:
+                    self.report(type={"INFO"}, message="Empty Group")
+                    return {"CANCELLED"}
                 capture_group(active_group)
+
             case CaptureScope.SOURCE.name:
                 if not has_active_source(context):
-                    return {"FINISHED"}
+                    self.report(type={"INFO"}, message="No source selected!")
                 active_source = get_active_source(context)
+                if not is_source_valid(active_source):
+                    self.report(type={"WARNING"}, message="Invalid source!")
+                    return {"CANCELLED"}
                 capture_source(active_group, active_source)
+
             case CaptureScope.ELEMENT.name:
                 if not has_active_element(context):
                     return {"FINISHED"}
                 active_source = get_active_source(context)
                 active_element = get_active_element(context)
                 capture_element(active_group, active_source, active_element)
+
         return {"FINISHED"}
 
 class CT_OT_snap_group_add(bpy.types.Operator):
@@ -235,7 +260,7 @@ class CT_OT_snap_element_remove(bpy.types.Operator):
         return {"FINISHED"}
 
 _classes = [
-    CT_OT_snap,
+    CT_OT_apply,
     CT_OT_capture,
     CT_OT_snap_group_add,
     CT_OT_snap_source_add,

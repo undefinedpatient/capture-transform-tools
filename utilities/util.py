@@ -51,20 +51,6 @@ def get_active_element(context: bpy.types.Context):
         raise RuntimeError("No active element!")
     
 
-def has_source_object(source)->bool:
-    return source.source_object != None
-def is_source_type_valid(source) -> bool:
-    """
-    In case user select "POSE_BONE" for non-armature object, have to check it
-    """
-    match source.type:
-        case SourceType.OBJECT.name:
-            return True
-        case SourceType.ARMATURE.name:
-            return source.source_object.type == "ARMATURE"
-        case _:
-            raise RuntimeError("Unknow SourceType")
-
 def switch_source_type(source, target_type: SourceType):
     match target_type:
         # Switch to OBJECT
@@ -94,7 +80,8 @@ def get_unqiue_name_from_list(name: str, list: list[str]) -> str:
 
 def capture_group(group):
     for source in group.sources:
-        capture_source(group, source)
+        if is_source_valid(source):
+            capture_source(group, source)
 
 def capture_source(group, source):
     match source.type:
@@ -103,7 +90,7 @@ def capture_source(group, source):
             source_object: bpy.types.Object = source.source_object
             source_matrix: Matrix = source_object.matrix_world
             offset_matrix: Matrix = (relative_matrix.inverted_safe() @ source_matrix)
-            print(offset_matrix)
+            # print(offset_matrix)
             source.transformation = [v for col in offset_matrix.transposed() for v in col]
         case SourceType.ARMATURE.name:
             for element in source.element_bones:
@@ -133,13 +120,14 @@ def capture_element_bone(group, source, element):
     offset_matrix: Matrix = (relative_matrix.inverted_safe() @ element_source_matrix)
 
     element.transformation = [v for col in offset_matrix.transposed() for v in col]
-    print("PoseSpace: \n", bone.matrix)
-    print("Object WorldSpace: \n", source.source_object.matrix_world)
-    print("Offset: \n", offset_matrix)
+    # print("PoseSpace: \n", bone.matrix)
+    # print("Object WorldSpace: \n", source.source_object.matrix_world)
+    # print("Offset: \n", offset_matrix)
 
 def apply_group(group):
     for source in group.sources:
-        apply_source(group, source)
+        if is_source_valid(source):
+            apply_source(group, source)
 
 def apply_source(group, source):
     match source.type:
@@ -184,6 +172,7 @@ def apply_element_bone(group, source, element):
 
 #
 #
+def get_relative_matrix(group) -> Matrix:
     match group.capture_type:
         case CaptureType.LOCATION.name:
             return Matrix.Translation(group.relative_location)
@@ -199,23 +188,26 @@ def apply_element_bone(group, source, element):
 #
 #   Validation
 #
+def is_source_valid(source) -> bool:
+    match source.type:
+        case SourceType.OBJECT.name:
+            return source.source_object != None
+        case SourceType.ARMATURE.name:
+            return source.source_object != None and source.source_object.type == "ARMATURE"
+    return False
+
 def is_group_settings_valid(group) -> bool:
     match group.capture_type:
         case CaptureType.LOCATION.name:
             return True
         case CaptureType.RELATIVE_OBJECT.name:
-            return True
+            return group.relative_object != None
         case CaptureType.RELATIVE_BONE.name:
+            if group.relative_object == None:
+                return False
             if group.relative_object.type != "ARMATURE" or group.relative_bone == "":
                 return False
             return True
     return False 
-def is_source_valid(source) -> bool:
-    match source.type:
-        case SourceType.OBJECT.name:
-            return True
-        case SourceType.ARMATURE.name:
-            return True
-    return False
 def is_capture_element_requirement_fulfilled(context: bpy.types.Context) -> bool:
     return True

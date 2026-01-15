@@ -24,9 +24,11 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
             active_propname="active_group_index",
             rows=1
         )
-        op_capture = col_group_list.operator(operator="capture_global_transform_tools.capture", icon="COPYDOWN", text="Capture (Group)")
+        row_op_capture = col_group_list.row()
+        row_op_apply = col_group_list.row()
+        op_capture = row_op_capture.operator(operator="capture_global_transform_tools.capture", icon="COPYDOWN", text="Capture (Group)")
         op_capture.capture_scope = CaptureScope.PRESET.name
-        op_apply = col_group_list.operator(operator="capture_global_transform_tools.snap", icon="PASTEDOWN", text="Apply")
+        op_apply = row_op_apply.operator(operator="capture_global_transform_tools.apply", icon="PASTEDOWN", text="Apply (Group)")
         op_apply.apply_scope = ApplyScope.PRESET.name
         # Right Column contains the actions
         col_group_actions = row_groups.column()
@@ -60,7 +62,7 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
             if has_active_source(context):
                 active_source = get_active_source(context)
                 row_source_object = col_source_list.row()
-                if has_source_object(active_source) and not is_source_type_valid(active_source):
+                if not is_source_valid(active_source):
                     row_source_object.alert = True
                 row_source_object.prop(active_source, "source_object", text="")
             row_add_ops = col_source_list.row()
@@ -76,11 +78,8 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
             row_op_apply = col_source_list.row()
             op_capture = row_op_capture.operator(operator="capture_global_transform_tools.capture", icon="COPYDOWN", text="Capture (Source)")
             op_capture.capture_scope = CaptureScope.SOURCE.name
-            op_apply = row_op_apply.operator(operator="capture_global_transform_tools.snap", icon="PASTEDOWN", text="Apply")
+            op_apply = row_op_apply.operator(operator="capture_global_transform_tools.apply", icon="PASTEDOWN", text="Apply (Source)")
             op_apply.apply_scope = ApplyScope.SOURCE.name
-            row_op_capture.enabled = has_active_source(context) and has_source_object(active_source) and is_source_type_valid(active_source)
-            row_op_apply.enabled = has_active_source(context) and has_source_object(active_source) and is_source_type_valid(active_source)
-
             # Right Column contains +/-
             col_source_actions = row_sources.column()
             row_source_add = col_source_actions.row()
@@ -101,8 +100,7 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
             row_element = layout.row()
             # The Panel only enabled when active object is the same as source object
             row_element.enabled = active_source.source_object == context.active_object
-
-            if not has_source_object(active_source) or not is_source_type_valid(active_source):
+            if not is_source_valid(active_source):
                 return
             match active_source.type:
                 case SourceType.OBJECT.name:
@@ -144,7 +142,7 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
                     row_op_apply = col_element_list.row()
                     op_capture = row_op_capture.operator(operator="capture_global_transform_tools.capture", icon="COPYDOWN", text="Capture (Element)")
                     op_capture.capture_scope = CaptureScope.ELEMENT.name
-                    op_apply = row_op_apply.operator(operator="capture_global_transform_tools.snap", icon="PASTEDOWN", text="Apply")
+                    op_apply = row_op_apply.operator(operator="capture_global_transform_tools.apply", icon="PASTEDOWN", text="Apply")
                     op_apply.apply_scope = ApplyScope.ELEMENT.name
                     # col_add_selected.enabled = active_source.source_object == context.active_object
 
