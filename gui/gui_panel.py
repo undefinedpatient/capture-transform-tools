@@ -64,7 +64,13 @@ class CT_PT_capture_global_transform_tools(bpy.types.Panel):
                 row_source_object = col_source_list.row()
                 if not is_source_valid(active_source):
                     row_source_object.alert = True
-                row_source_object.prop(active_source, "source_object", text="")
+                row_source_object.prop_search(
+                    data=active_source, 
+                    property="source_object", 
+                    search_data=context.scene,
+                    search_property="objects",
+                    text=""
+                )
             row_add_ops = col_source_list.row()
             op_add_active = row_add_ops.operator(operator="capture_global_transform_tools.snap_source_add", text="Add Active")
             op_add_active.is_blank = False

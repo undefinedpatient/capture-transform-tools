@@ -153,7 +153,6 @@ class CT_OT_snap_source_add(bpy.types.Operator):
         else:
             # Empty as source here
             source = active_group.sources.add()
-            source.name = get_unqiue_name_from_list("source", list(map(lambda s: s.name, active_group.sources)))
 
         return {"FINISHED"}
 
@@ -203,8 +202,7 @@ class CT_OT_snap_element_add(bpy.types.Operator):
                     else:
                         self.report({"INFO"}, message="Adding bones only works in Pose mode.")
                 else:
-                    active_source.element_bones.add()
-
+                    element = active_source.element_bones.add()
         return {"FINISHED"}
 
 class CT_OT_snap_group_remove(bpy.types.Operator):

@@ -12,6 +12,10 @@ class CT_Element_Bone(bpy.types.PropertyGroup):
         ),
         subtype="MATRIX"
     )
+    is_locked: bpy.props.BoolProperty(
+        name="Is Locked",
+        default=False
+    )
 
 class CT_SnapSource(bpy.types.PropertyGroup):
     # Type of source
