@@ -208,13 +208,36 @@ class CT_OT_capture_element_add(bpy.types.Operator):
 class CT_OT_capture_group_remove(bpy.types.Operator):
     bl_idname = "capture_transform_tools.capture_group_remove"
     bl_label = "Capture group Remove"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"UNDO"}
     bl_description = "Empty"
+
+    remove_all: bpy.props.BoolProperty(
+        name="Remove All",
+        default=False
+    )
+
     def execute(self, context):
         props = context.scene.capture_transform_tools_settings
+        # When user clicked "Remove All Unlocked"
+        if self.remove_all:
+            for i in range(len(props.groups)-1, -1, -1):
+                if props.groups[i].locked:
+                    continue
+                props.groups.remove(i)
+
+            if len(props.groups) == 0:
+                props.active_group_index = -1
+            else:
+                props.active_group_index = 0
+            return {"FINISHED"}
+        # When no active group selected
         if not has_active_group(context):
             return {"FINISHED"}
         active_group_index = props.active_group_index
+        # When active group is locked
+        if props.groups[active_group_index].locked:
+            self.report(type={"INFO"}, message="Group is locked!")
+            return {"FINISHED"}
         props.active_group_index -= 1
         props.groups.remove(active_group_index)
         return {"FINISHED"}
@@ -226,15 +249,29 @@ class CT_OT_capture_source_remove(bpy.types.Operator):
     bl_description = "Empty"
     def execute(self, context):
         props = context.scene.capture_transform_tools_settings
+        active_group = get_active_group(context)
+        # When user clicked "Remove All Unlocked"
+        if self.remove_all:
+            for i in range(len(active_group.sources)-1, -1, -1):
+                if active_group.sources[i].locked:
+                    continue
+                active_group.sources.remove(i)
+
+            if len(active_group.sources) == 0:
+                active_group.active_source_index = -1
+            else:
+                active_group.active_source_index = 0
+            return {"FINISHED"}
+        # When no active source exist
         if not has_active_source(context):
+            return {"FINISHED"}
+        # When active source is locked
+        if get_active_source(context).locked:
             return {"FINISHED"}
         if len(props.groups) == 0 or len(props.groups[props.active_group_index].sources) == 0:
             return {"FINISHED"}
-        active_group = props.groups[props.active_group_index]
         active_source_index = active_group.active_source_index
-
-        props.groups[props.active_group_index].active_source_index -= 1
-
+        active_group.active_source_index -= 1
         active_group.sources.remove(active_source_index)
 
         return {"FINISHED"}
@@ -244,7 +281,7 @@ class CT_OT_capture_element_remove(bpy.types.Operator):
     bl_label = "Capture Source Remove Elements"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
-
+    
     def execute(self, context):
         if not has_active_element(context):
             return {"FINISHED"}
@@ -257,6 +294,31 @@ class CT_OT_capture_element_remove(bpy.types.Operator):
         source.active_element_index -= 1
         return {"FINISHED"}
 
+class CT_OT_capture_group_lock(bpy.types.Operator):
+    bl_idname = "capture_transform_tools.capture_group_lock"
+    bl_label = "Capture Group Lock"
+    bl_options = {"UNDO"}
+    bl_description = "Empty"
+
+    actions: bpy.props.EnumProperty(
+        items=[
+            (LockAction.LOCK.name, "Lock", "Empty", "LOCKED", 0),
+            (LockAction.UNLOCK.name, "Unlock", "Empty", "UNLOCKED", 1),
+            (LockAction.INVERT.name, "Invert Lock", "Empty", "NONE", 2),
+        ]
+    )
+    def execute(self, context):
+        match self.actions:
+            case LockAction.LOCK.name:
+                for group in context.scene.capture_transform_tools_settings.groups:
+                    group.locked = True
+            case LockAction.UNLOCK.name:
+                for group in context.scene.capture_transform_tools_settings.groups:
+                    group.locked = False
+            case LockAction.INVERT.name:
+                for group in context.scene.capture_transform_tools_settings.groups:
+                    group.locked = not group.locked
+        return {"FINISHED"}
 _classes = [
     CT_OT_apply,
     CT_OT_capture,
@@ -265,7 +327,8 @@ _classes = [
     CT_OT_capture_element_add,
     CT_OT_capture_group_remove,
     CT_OT_capture_source_remove,
-    CT_OT_capture_element_remove
+    CT_OT_capture_element_remove,
+    CT_OT_capture_group_lock
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

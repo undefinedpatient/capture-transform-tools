@@ -1,5 +1,26 @@
 import bpy
 from ..utilities import *
+
+
+class CT_MT_group_manage(bpy.types.Menu):
+    bl_idname = "CT_MT_group_manage"
+    bl_label = ""
+    def draw(self, context):
+        layout = self.layout
+
+        op_delete_unlocked = layout.operator("capture_transform_tools.capture_group_remove", icon="NONE", text="Delete All Unlocked Groups")
+        op_delete_unlocked.remove_all = True
+
+        op_group_lock = layout.operator("capture_transform_tools.capture_group_lock", icon="LOCKED", text="Lock All")
+        op_group_lock.actions = LockAction.LOCK.name
+
+        op_group_unlock = layout.operator("capture_transform_tools.capture_group_lock", icon="UNLOCKED", text="Unlock All")
+        op_group_unlock.actions = LockAction.UNLOCK.name
+
+        op_group_lock_invert = layout.operator("capture_transform_tools.capture_group_lock", icon="NONE", text="Lock Invert All")
+        op_group_lock_invert.actions = LockAction.INVERT.name
+
+
 class CT_PT_capture_transform_tools(bpy.types.Panel):
     bl_space_type = "VIEW_3D"    
     bl_region_type = "UI"
@@ -35,8 +56,12 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
         row_group_add = col_group_actions.row()
         row_group_remove = col_group_actions.row()
         op_group_add = row_group_add.operator(operator="capture_transform_tools.capture_group_add", icon="ADD", text="")
+
         op_group_remove = row_group_remove.operator(operator="capture_transform_tools.capture_group_remove", icon="REMOVE", text="")
-        row_group_remove.enabled = has_active_group(context)
+        op_group_remove.remove_all = False
+        row_group_remove.enabled = has_active_group(context) and not get_active_group(context).locked
+
+        col_group_actions.menu("CT_MT_group_manage", icon="DOWNARROW_HLT", text="")
 
         group_section.separator(type="LINE")
 
@@ -93,7 +118,7 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
             op_source_add = row_source_add.operator(operator="capture_transform_tools.capture_source_add", icon="ADD", text="")
             op_source_add.is_blank = True
             op_capture_source_remove = row_source_remove.operator(operator="capture_transform_tools.capture_source_remove", icon="REMOVE", text="")
-            row_source_remove.enabled = has_active_source(context)
+            row_source_remove.enabled = has_active_source(context) and not get_active_source(context).locked
             source_section.separator()
         else:
             return
@@ -160,7 +185,7 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
                     op_capture_element_add = row_element_add.operator(operator="capture_transform_tools.capture_element_add", icon="ADD", text="")
                     op_capture_element_add.is_blank = True
                     op_capture_element_remove = row_element_remove.operator(operator="capture_transform_tools.capture_element_remove", icon="REMOVE", text="")
-                    row_element_remove.enabled = has_active_element(context)
+                    row_element_remove.enabled = has_active_element(context) and not get_active_element(context).locked
 
     def draw_settings(self, context):
         props = context.scene.capture_transform_tools_settings
@@ -202,6 +227,7 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
 
 
 _classes = [
+    CT_MT_group_manage,
     CT_PT_capture_transform_tools
 ]
 

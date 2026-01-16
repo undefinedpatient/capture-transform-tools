@@ -12,7 +12,7 @@ class CT_UL_capture_elements(bpy.types.UIList):
         element_name = "<empty>" if item.name == "" else item.name
         row_item.label(text=element_name,  icon="BONE_DATA")
         row_item.separator()
-        # row_item.prop(data=item, property="enabled", text='')
+        row_item.prop(data=item, property="locked", icon="LOCKED" if item.locked else "UNLOCKED", text='', emboss=False)
 
 class CT_UL_capture_sources(bpy.types.UIList):
     bl_space_type = 'PROPERTIES'
@@ -29,6 +29,7 @@ class CT_UL_capture_sources(bpy.types.UIList):
             row_item.label(text=source_name, icon="RADIOBUT_OFF")
         # row_item.prop(data=item, property="source_object")
         row_item.prop(data=item, property="type", text="", emboss=False, expand=False)
+        row_item.prop(data=item, property="locked", icon="LOCKED" if item.locked else "UNLOCKED", text='', emboss=False)
 
 class CT_UL_capture_groups(bpy.types.UIList):
     bl_space_type = 'PROPERTIES'
@@ -41,6 +42,7 @@ class CT_UL_capture_groups(bpy.types.UIList):
             row_item.prop(data=item, property="name", icon="RADIOBUT_ON", text="", emboss=False)
         else:
             row_item.prop(data=item, property="name", icon="RADIOBUT_OFF", text="", emboss=False)
+        row_item.prop(data=item, property="locked", icon="LOCKED" if item.locked else "UNLOCKED", text='', emboss=False)
     
 
 _classes = [

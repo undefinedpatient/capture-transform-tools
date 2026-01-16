@@ -1,5 +1,6 @@
 import bpy
 from ..utilities import *
+
 class CT_Element_Bone(bpy.types.PropertyGroup):
     transformation: bpy.props.FloatVectorProperty(
         name="transformation",
@@ -12,13 +13,9 @@ class CT_Element_Bone(bpy.types.PropertyGroup):
         ),
         subtype="MATRIX"
     )
-    is_locked: bpy.props.BoolProperty(
-        name="Is Locked",
+    locked: bpy.props.BoolProperty(
+        name="Locked",
         default=False
-    )
-    enabled: bpy.props.BoolProperty(
-        name="Enabled",
-        default=True
     )
 
 class CT_SnapSource(bpy.types.PropertyGroup):
@@ -51,6 +48,10 @@ class CT_SnapSource(bpy.types.PropertyGroup):
         name="Active Element Index",
         default=-1
     )
+    locked: bpy.props.BoolProperty(
+        name="Locked",
+        default=False
+    )
     #
     #   Elements
     #
@@ -67,6 +68,10 @@ class CT_Group(bpy.types.PropertyGroup):
     active_source_index: bpy.props.IntProperty(
         name="Active Source Index",
         default=-1
+    )
+    locked: bpy.props.BoolProperty(
+        name="Locked",
+        default=False
     )
 
     # Type of snapping, either absolute location in global space, or offset with objects
@@ -113,7 +118,7 @@ _register, _unregister = bpy.utils.register_classes_factory(_classes)
 
 def register():
     _register()
-    bpy.types.Scene.capture_transform_tools_settings = bpy.props.PointerProperty(type=ST_PropertyGroup, name="Snap Tools Settings")
+    bpy.types.Scene.capture_transform_tools_settings = bpy.props.PointerProperty(type=ST_PropertyGroup, name="Capture Tools Settings")
 
 def unregister():
     del bpy.types.Scene.capture_transform_tools_settings

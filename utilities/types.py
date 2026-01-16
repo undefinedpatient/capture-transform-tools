@@ -20,3 +20,8 @@ class ApplyScope(Enum):
     PRESET = 0,
     SOURCE = 1,
     ELEMENT = 2
+
+class LockAction(Enum):
+    LOCK = 0,
+    UNLOCK = 1,
+    INVERT = 2
