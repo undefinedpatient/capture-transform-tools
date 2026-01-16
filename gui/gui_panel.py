@@ -217,7 +217,7 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
                             search_property="bones",
                             text=""
                         )
-                        row_element_target.enabled = not get_active_element(context).locked and not get_active_source(context).locked
+                        row_element_target.enabled = not get_active_element(context).locked and not get_active_source(context).locked and not get_active_group(context).locked
                     row_add_ops = col_element_list.row()
                     col_add_active = row_add_ops.column()
                     col_add_selected = row_add_ops.column()
@@ -226,7 +226,8 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
                     op_add_active.is_blank = False 
                     op_add_selected = col_add_selected.operator(operator="capture_transform_tools.capture_element_add", text="Add Selected")
                     op_add_selected.only_active = False
-                    op_add_selected.is_blank = False 
+                    op_add_selected.is_blank = False
+
                     #
                     # Enable
                     row_add_ops.enabled = not get_active_group(context).locked and not get_active_source(context).locked
@@ -240,7 +241,8 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
                     op_apply = row_op_apply.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply (Element)")
                     op_apply.apply_scope = ApplyScope.ELEMENT.name
                     row_op_capture.enabled =\
-                        has_active_element(context) and not get_active_element(context).locked and not get_active_source(context).locked
+                        has_active_element(context) and not get_active_element(context).locked and\
+                        not get_active_source(context).locked and not get_active_group(context).locked
 
                     # Right Column contains +/-
                     col_element_actions = row_element.column()
@@ -259,10 +261,10 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
         props = context.scene.capture_transform_tools_settings
         layout = self.layout
         group_settings = layout.column()
-        group_settings.enabled = not get_active_group(context).locked
         group_settings.separator(type="LINE")
         group_settings.label(icon="SETTINGS",text="Group Settings")
         if has_active_group(context):
+            group_settings.enabled = not get_active_group(context).locked
             active_group = get_active_group(context)
             row_capture_type = group_settings.column_flow(columns=1)
             row_capture_type.props_enum(active_group, "capture_type")
@@ -293,6 +295,7 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
         self.draw_source_section(context)
         self.draw_element_section(context)
         self.draw_settings(context)
+        layout.enabled = context.mode == "POSE" or context.mode=="OBJECT"
 
 
 

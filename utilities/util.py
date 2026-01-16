@@ -203,8 +203,10 @@ def is_source_valid(source) -> bool:
         case SourceType.ARMATURE.name:
             return source.source_object != None and source.source_object.type == "ARMATURE"
     return False
+
 def is_bone_element_valid(element, parent_source) -> bool:
     return element.name in list(map(lambda bone: bone.name, parent_source.source_object.pose.bones))
+
 def is_group_settings_valid(group) -> bool:
     match group.capture_type:
         case CaptureType.LOCATION.name:
@@ -218,5 +220,13 @@ def is_group_settings_valid(group) -> bool:
                 return False
             return True
     return False 
-def is_capture_element_requirement_fulfilled(context: bpy.types.Context) -> bool:
-    return True
+
+#
+#   Extra Visualization
+#
+def is_object_in_group(group, object):
+    pass
+def is_object_in_source(group, object):
+    pass
+def is_bone_in_element(group, bone):
+    pass
