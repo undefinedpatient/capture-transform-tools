@@ -247,6 +247,12 @@ class CT_OT_capture_source_remove(bpy.types.Operator):
     bl_label = "Capture Source Remove"
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Empty"
+
+    remove_all: bpy.props.BoolProperty(
+        name="Remove All",
+        default=False
+    )
+
     def execute(self, context):
         props = context.scene.capture_transform_tools_settings
         active_group = get_active_group(context)
@@ -279,13 +285,36 @@ class CT_OT_capture_source_remove(bpy.types.Operator):
 class CT_OT_capture_element_remove(bpy.types.Operator):
     bl_idname = "capture_transform_tools.capture_element_remove"
     bl_label = "Capture Source Remove Elements"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"UNDO"}
     bl_description = "Empty"
     
+    remove_all: bpy.props.BoolProperty(
+        name="Remove All",
+        default=False
+    )
+
     def execute(self, context):
-        if not has_active_element(context):
+        if not has_active_source(context):
             return {"FINISHED"}
         source = get_active_source(context)
+        element_list = get_element_list_from_active_source(source)
+        # When user clicked "Remove All Unlocked"
+        if self.remove_all:
+            for i in range(len(element_list)-1, -1, -1):
+                if element_list[i].locked:
+                    continue
+                element_list.remove(i)
+
+            if len(element_list) == 0:
+                source.active_element_index = -1
+            else:
+                source.active_element_index = 0
+            return {"FINISHED"}
+        # When no active element exist
+        if not has_active_element(context):
+            return {"FINISHED"}
+
+        active_element = get_active_element(context)
         match source.type:
             case SourceType.OBJECT.name:
                 source.element_objects.remove(get_active_element_index(context))
@@ -307,6 +336,7 @@ class CT_OT_capture_group_lock(bpy.types.Operator):
             (LockAction.INVERT.name, "Invert Lock", "Empty", "NONE", 2),
         ]
     )
+
     def execute(self, context):
         match self.actions:
             case LockAction.LOCK.name:
@@ -319,6 +349,66 @@ class CT_OT_capture_group_lock(bpy.types.Operator):
                 for group in context.scene.capture_transform_tools_settings.groups:
                     group.locked = not group.locked
         return {"FINISHED"}
+
+class CT_OT_capture_source_lock(bpy.types.Operator):
+    bl_idname = "capture_transform_tools.capture_source_lock"
+    bl_label = "Capture Source Lock"
+    bl_options = {"UNDO"}
+    bl_description = "Empty"
+
+    actions: bpy.props.EnumProperty(
+        items=[
+            (LockAction.LOCK.name, "Lock", "Empty", "LOCKED", 0),
+            (LockAction.UNLOCK.name, "Unlock", "Empty", "UNLOCKED", 1),
+            (LockAction.INVERT.name, "Invert Lock", "Empty", "NONE", 2),
+        ]
+    )
+
+    def execute(self, context):
+        active_group = get_active_group(context)
+        match self.actions:
+            case LockAction.LOCK.name:
+                for source in active_group.sources:
+                    source.locked = True
+            case LockAction.UNLOCK.name:
+                for source in active_group.sources:
+                    source.locked = False
+            case LockAction.INVERT.name:
+                for source in active_group.sources:
+                    source.locked = not source.locked
+
+        return {"FINISHED"}
+
+class CT_OT_capture_element_lock(bpy.types.Operator):
+    bl_idname = "capture_transform_tools.capture_element_lock"
+    bl_label = "Capture element Lock"
+    bl_options = {"UNDO"}
+    bl_description = "Empty"
+
+    actions: bpy.props.EnumProperty(
+        items=[
+            (LockAction.LOCK.name, "Lock", "Empty", "LOCKED", 0),
+            (LockAction.UNLOCK.name, "Unlock", "Empty", "UNLOCKED", 1),
+            (LockAction.INVERT.name, "Invert Lock", "Empty", "NONE", 2),
+        ]
+    )
+
+    def execute(self, context):
+        active_source = get_active_source(context)
+        element_list = get_element_list_from_active_source(active_source)
+        match self.actions:
+            case LockAction.LOCK.name:
+                for element in element_list:
+                    element.locked = True
+            case LockAction.UNLOCK.name:
+                for element in element_list:
+                    element.locked = False
+            case LockAction.INVERT.name:
+                for element in element_list:
+                    element.locked = not element.locked
+
+        return {"FINISHED"}
+
 _classes = [
     CT_OT_apply,
     CT_OT_capture,
@@ -328,7 +418,9 @@ _classes = [
     CT_OT_capture_group_remove,
     CT_OT_capture_source_remove,
     CT_OT_capture_element_remove,
-    CT_OT_capture_group_lock
+    CT_OT_capture_group_lock,
+    CT_OT_capture_source_lock,
+    CT_OT_capture_element_lock
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

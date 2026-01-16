@@ -38,18 +38,26 @@ def has_active_element(context: bpy.types.Context) -> bool:
     return get_active_element_index(context) != -1
 
 def get_active_element(context: bpy.types.Context):
-    if has_active_element(context):
-        source = get_active_source(context)
-        match source.type:
-            case SourceType.OBJECT.name:
-                return source.element_objects[get_active_element_index(context)]
-            case SourceType.ARMATURE.name:
-                return source.element_bones[get_active_element_index(context)]
-            case _:
-                raise RuntimeError("Unknown SourceType")
-    else:
+    if not has_active_element(context):
         raise RuntimeError("No active element!")
-    
+    source = get_active_source(context)
+    match source.type:
+        case SourceType.OBJECT.name:
+            return source.element_objects[get_active_element_index(context)]
+        case SourceType.ARMATURE.name:
+            return source.element_bones[get_active_element_index(context)]
+        case _:
+            raise RuntimeError("Unknown SourceType")
+
+def get_element_list_from_active_source(source):
+    match source.type:
+        case SourceType.OBJECT.name:
+            return [source.source_object]
+        case SourceType.ARMATURE.name:
+            return source.element_bones
+        case _:
+            raise RuntimeError("Unknown SourceType")
+
 
 def switch_source_type(source, target_type: SourceType):
     match target_type:
