@@ -146,8 +146,14 @@ def apply_source(group, source):
     match source.type:
         case SourceType.OBJECT.name:
             source_object: bpy.types.Object = source.source_object
-            matrix = get_relative_matrix(group) @ source.transformation
-            source_object.matrix_world = matrix
+            global_matrix: Matrix = source.transformation
+            source_object.matrix_world = global_matrix
+
+            bpy.context.view_layer.update()
+            constraint_offset = global_matrix @ source_object.matrix_world.inverted_safe()
+            source_object.matrix_world = constraint_offset @ global_matrix
+            
+            bpy.context.view_layer.update()
 
         case SourceType.ARMATURE.name:
             for element in source.element_bones:
@@ -170,6 +176,8 @@ def apply_element_bone(group, source, element):
     pose_bone: bpy.types.PoseBone = source_object.pose.bones[element.name]
     global_matrix: Matrix = element.transformation
     arm_matrix: Matrix = source_object.matrix_world.inverted_safe() @ global_matrix
+
+
     pose_bone.matrix = arm_matrix
     bpy.context.view_layer.update()
     constraint_offset = arm_matrix @ pose_bone.matrix.inverted_safe()
