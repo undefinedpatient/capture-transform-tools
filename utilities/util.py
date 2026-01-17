@@ -151,7 +151,7 @@ def apply_source(group, source):
 
             bpy.context.view_layer.update()
             constraint_offset = global_matrix @ source_object.matrix_world.inverted_safe()
-            source_object.matrix_world = constraint_offset @ global_matrix
+            source_object.matrix_world = constraint_offset @ get_relative_matrix(group) @ global_matrix
             
             bpy.context.view_layer.update()
 
@@ -181,7 +181,7 @@ def apply_element_bone(group, source, element):
     pose_bone.matrix = arm_matrix
     bpy.context.view_layer.update()
     constraint_offset = arm_matrix @ pose_bone.matrix.inverted_safe()
-    pose_bone.matrix = constraint_offset @ arm_matrix
+    pose_bone.matrix = constraint_offset @ get_relative_matrix(group) @ arm_matrix
     bpy.context.view_layer.update()
     # if pose_bone.parent == None:
     #     local_pose = pose_bone.bone.matrix_local.inverted_safe() @ arm_matrix

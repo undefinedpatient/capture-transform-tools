@@ -18,6 +18,13 @@ class CT_OT_bake(bpy.types.Operator):
         ]
     )
 
+
+    lock_location: bpy.props.BoolVectorProperty(
+        name="Lock Location",
+        default=(False, False, False),
+        subtype="XYZ"
+    )
+
     frame_start: bpy.props.IntProperty(
         name="Frame Start",
         default=0
