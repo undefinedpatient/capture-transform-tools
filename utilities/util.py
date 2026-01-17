@@ -120,16 +120,21 @@ def capture_element_bone(group, source, element):
     """
     Specific implementation for bone element.
     """
-    bones = source.source_object.pose.bones
-    bone: bpy.types.PoseBone = bones[element.name]
+    source_object: bpy.types.Object = source.source_object
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    eval_obj = source_object.evaluated_get(depsgraph)
+    pose_bone: bpy.types.PoseBone = eval_obj.pose.bones[element.name]
+
     relative_matrix: Matrix = get_relative_matrix(group)
-    object_source_matrix: Matrix = source.source_object.matrix_world
-    element_source_matrix: Matrix = object_source_matrix @ bone.matrix
-    offset_matrix: Matrix = (relative_matrix.inverted_safe() @ element_source_matrix)
+    armature_matrix: Matrix = pose_bone.matrix
+    world_matrix: Matrix = eval_obj.matrix_world
+    global_matrix: Matrix = world_matrix @ armature_matrix
+    offset_matrix: Matrix = relative_matrix.inverted_safe() @ global_matrix
 
     element.transformation = [v for col in offset_matrix.transposed() for v in col]
-    # print("PoseSpace: \n", bone.matrix)
-    # print("Object WorldSpace: \n", source.source_object.matrix_world)
+    # print("Local: \n", armature_matrix)
+    print("Global: \n", global_matrix)
+    print("basis:\n", pose_bone.matrix_basis)
     # print("Offset: \n", offset_matrix)
 
 def apply_group(group):
@@ -162,24 +167,31 @@ def apply_element(group, source, element):
 
 def apply_element_bone(group, source, element):
     source_object: bpy.types.Object = source.source_object
-    bone: bpy.types.Bone = source_object.data.bones[element.name]
     pose_bone: bpy.types.PoseBone = source_object.pose.bones[element.name]
-    if pose_bone.parent:
-        (location, rotation, scale) = Matrix.decompose(element.transformation)
-        matrix: Matrix = Matrix()
-        matrix = Matrix.LocRotScale(None, rotation, scale)
-        matrix = get_relative_matrix(group) @ element.transformation
-        matrix = source_object.matrix_world.inverted_safe() @ matrix
-        pose_bone.matrix = matrix
-    
-    else:
-        matrix: Matrix = get_relative_matrix(group) @ element.transformation
-        matrix = source_object.matrix_world.inverted_safe() @ matrix
+    global_matrix: Matrix = element.transformation
+    arm_matrix: Matrix = source_object.matrix_world.inverted_safe() @ global_matrix
+    pose_bone.matrix = arm_matrix
+    bpy.context.view_layer.update()
+    constraint_offset = arm_matrix @ pose_bone.matrix.inverted_safe()
+    pose_bone.matrix = constraint_offset @ arm_matrix
+    bpy.context.view_layer.update()
+    # if pose_bone.parent == None:
+    #     local_pose = pose_bone.bone.matrix_local.inverted_safe() @ arm_matrix
+    #     local_constraint: Matrix = pose_bone.matrix_basis.inverted_safe() @ pose_bone.matrix
+    #     pose_bone.matrix = local_constraint.inverted_safe() @ local_pose
+    # else:
+    #     # Get how much parent bone move relatively to target bone, if target bone has parent
+    #     parent_rest: Matrix = pose_bone.parent.bone.matrix_local.copy()
+    #     parent_pose: Matrix = pose_bone.parent.matrix.copy()
+    #     parent_delta: Matrix =  parent_rest.inverted_safe() @ parent_pose
+    #     print("parent_delta:\n", parent_delta)
+    #     local_pose: Matrix = pose_bone.bone.matrix_local.inverted_safe() @ arm_matrix
+    #     local_constraint: Matrix = pose_bone.matrix_basis.inverted_safe() @ pose_bone.matrix
+    #     pose_bone.matrix = local_constraint.inverted_safe() @ parent_delta @ local_pose
 
-        pose_bone.matrix = matrix
 
-#
-#
+
+
 def get_relative_matrix(group) -> Matrix:
     match group.capture_type:
         case CaptureType.LOCATION.name:

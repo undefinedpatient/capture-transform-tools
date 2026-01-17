@@ -54,11 +54,35 @@ class CT_OT_bake(bpy.types.Operator):
                         group="baked capture",
                         keytype="KEYFRAME"
                         )
+                    pose_bone.keyframe_insert(
+                        "rotation_quaternion",
+                        index=-1,
+                        group="baked capture",
+                        keytype="KEYFRAME"
+                        )
+                    pose_bone.keyframe_insert(
+                        "scale",
+                        index=-1,
+                        group="baked capture",
+                        keytype="KEYFRAME"
+                        )
                 if self.must_include_last_frame:
                     context.scene.frame_set(self.frame_end)
                     apply_element_bone(group, source, element)
                     pose_bone.keyframe_insert(
                         "location",
+                        index=-1,
+                        group="baked capture",
+                        keytype="KEYFRAME"
+                        )
+                    pose_bone.keyframe_insert(
+                        "rotation_quaternion",
+                        index=-1,
+                        group="baked capture",
+                        keytype="KEYFRAME"
+                        )
+                    pose_bone.keyframe_insert(
+                        "scale",
                         index=-1,
                         group="baked capture",
                         keytype="KEYFRAME"

@@ -5,7 +5,7 @@ from ..utilities import *
 class CT_OT_apply(bpy.types.Operator):
     bl_idname = "capture_transform_tools.apply"
     bl_label = "Apply"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"UNDO"}
     bl_description = "Empty"
     apply_scope: bpy.props.EnumProperty(
         items=[
@@ -13,6 +13,10 @@ class CT_OT_apply(bpy.types.Operator):
             (ApplyScope.SOURCE.name, "Source", "Empty", "OBJECT_DATA", 1),
             (ApplyScope.ELEMENT.name, "Element", "Empty", "STICKY_UVS_DISABLE", 2)
         ]
+    )
+    insert_keyframe: bpy.props.BoolProperty(
+        name="Insert Keyframe",
+        default=False
     )
     def execute(self, context):
         if not has_active_group(context):
