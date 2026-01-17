@@ -12,12 +12,17 @@ class CaptureType(Enum):
     # CAMERA = 3
 
 class CaptureScope(Enum):
-    PRESET = 0,
+    GROUP = 0,
     SOURCE = 1,
     ELEMENT = 2
 
 class ApplyScope(Enum):
-    PRESET = 0,
+    GROUP = 0,
+    SOURCE = 1,
+    ELEMENT = 2
+
+class BakeScope(Enum):
+    GROUP = 0,
     SOURCE = 1,
     ELEMENT = 2
 

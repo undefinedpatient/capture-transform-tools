@@ -83,14 +83,15 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
             rows=1
         )
         row_op_capture = col_group_list.row()
-        row_op_apply = col_group_list.row()
-        op_capture = row_op_capture.operator(operator="capture_transform_tools.capture", icon="COPYDOWN", text="Capture (Group)")
-        op_capture.capture_scope = CaptureScope.PRESET.name
+        row_op_apply_bake = col_group_list.row()
+        op_capture = row_op_capture.operator(operator="capture_transform_tools.capture", icon="COPYDOWN", text="Capture")
+        op_capture.capture_scope = CaptureScope.GROUP.name
         row_op_capture.enabled = has_active_group(context) and not get_active_group(context).locked
-        row_op_apply.enabled = has_active_group(context) 
-        op_apply = row_op_apply.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply (Group)")
-        op_apply.apply_scope = ApplyScope.PRESET.name
-        op_bake = row_op_apply.operator(operator="capture_transform_tools.capture_group_bake", icon="CON_ACTION", text="Bake")
+        row_op_apply_bake.enabled = has_active_group(context) 
+        op_apply = row_op_apply_bake.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply")
+        op_apply.apply_scope = ApplyScope.GROUP.name
+        op_bake = row_op_apply_bake.operator(operator="capture_transform_tools.bake", icon="CON_ACTION", text="Bake")
+        op_bake.bake_scope = BakeScope.GROUP.name
         # Right Column contains the actions
         col_group_actions = row_groups.column()
         row_group_add = col_group_actions.row()
@@ -159,15 +160,17 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
 
 
             row_op_capture = col_source_list.row()
-            row_op_apply = col_source_list.row()
-            op_capture = row_op_capture.operator(operator="capture_transform_tools.capture", icon="COPYDOWN", text="Capture (Source)")
+            row_op_apply_bake = col_source_list.row()
+            op_capture = row_op_capture.operator(operator="capture_transform_tools.capture", icon="COPYDOWN", text="Capture")
             op_capture.capture_scope = CaptureScope.SOURCE.name
-            op_apply = row_op_apply.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply (Source)")
+            op_apply = row_op_apply_bake.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply")
             op_apply.apply_scope = ApplyScope.SOURCE.name
+            op_bake = row_op_apply_bake.operator(operator="capture_transform_tools.bake", icon="CON_ACTION", text="Bake")
+            op_bake.bake_scope = BakeScope.SOURCE.name
             row_op_capture.enabled =\
                 has_active_source(context) and not get_active_source(context).locked and\
                 not get_active_group(context).locked
-            row_op_apply.enabled = has_active_source(context)
+            row_op_apply_bake.enabled = has_active_source(context)
 
 
             # Right Column contains +/-
@@ -242,11 +245,13 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
                     #
 
                     row_op_capture = col_element_list.row()
-                    row_op_apply = col_element_list.row()
-                    op_capture = row_op_capture.operator(operator="capture_transform_tools.capture", icon="COPYDOWN", text="Capture (Element)")
+                    row_op_apply_bake = col_element_list.row()
+                    op_capture = row_op_capture.operator(operator="capture_transform_tools.capture", icon="COPYDOWN", text="Capture")
                     op_capture.capture_scope = CaptureScope.ELEMENT.name
-                    op_apply = row_op_apply.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply (Element)")
+                    op_apply = row_op_apply_bake.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply")
                     op_apply.apply_scope = ApplyScope.ELEMENT.name
+                    op_bake = row_op_apply_bake.operator(operator="capture_transform_tools.bake", icon="CON_ACTION", text="Bake")
+                    op_bake.bake_scope = BakeScope.ELEMENT.name
                     row_op_capture.enabled =\
                         has_active_element(context) and not get_active_element(context).locked and\
                         not get_active_source(context).locked and not get_active_group(context).locked

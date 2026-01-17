@@ -9,7 +9,7 @@ class CT_OT_apply(bpy.types.Operator):
     bl_description = "Empty"
     apply_scope: bpy.props.EnumProperty(
         items=[
-            (ApplyScope.PRESET.name, "Preset", "Empty", "OUTLINER_COLLECTION", 0),
+            (ApplyScope.GROUP.name, "Preset", "Empty", "OUTLINER_COLLECTION", 0),
             (ApplyScope.SOURCE.name, "Source", "Empty", "OBJECT_DATA", 1),
             (ApplyScope.ELEMENT.name, "Element", "Empty", "STICKY_UVS_DISABLE", 2)
         ]
@@ -23,7 +23,7 @@ class CT_OT_apply(bpy.types.Operator):
             self.report(type={"WARNING"}, message="Invalid Group Setting!")
             return {"CANCELLED"}
         match self.apply_scope:
-            case ApplyScope.PRESET.name:
+            case ApplyScope.GROUP.name:
                 if len(active_group.sources) == 0:
                     self.report(type={"INFO"}, message="Empty Group")
                     return {"CANCELLED"}
@@ -55,7 +55,7 @@ class CT_OT_capture(bpy.types.Operator):
 
     capture_scope: bpy.props.EnumProperty(
         items=[
-            (CaptureScope.PRESET.name, "Preset", "Empty", "OUTLINER_COLLECTION", 0),
+            (CaptureScope.GROUP.name, "Preset", "Empty", "OUTLINER_COLLECTION", 0),
             (CaptureScope.SOURCE.name, "Source", "Empty", "OBJECT_DATA", 1),
             (CaptureScope.ELEMENT.name, "Element", "Empty", "STICKY_UVS_DISABLE", 2)
         ]
@@ -69,7 +69,7 @@ class CT_OT_capture(bpy.types.Operator):
             self.report(type={"WARNING"}, message="Invalid Group Setting!")
             return {"CANCELLED"}
         match self.capture_scope:
-            case CaptureScope.PRESET.name:
+            case CaptureScope.GROUP.name:
                 if len(active_group.sources) == 0:
                     self.report(type={"INFO"}, message="Empty Group")
                     return {"CANCELLED"}
