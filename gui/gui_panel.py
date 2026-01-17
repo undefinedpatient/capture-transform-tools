@@ -90,6 +90,7 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
         row_op_apply.enabled = has_active_group(context) 
         op_apply = row_op_apply.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply (Group)")
         op_apply.apply_scope = ApplyScope.PRESET.name
+        op_bake = row_op_apply.operator(operator="capture_transform_tools.capture_group_bake", icon="CON_ACTION", text="Bake")
         # Right Column contains the actions
         col_group_actions = row_groups.column()
         row_group_add = col_group_actions.row()
@@ -125,6 +126,11 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
             )
             if has_active_source(context):
                 active_source = get_active_source(context)
+                # Enum: Source Type OBJECT|ARMATURE
+                row_source_type = col_source_list.row()
+                row_source_type.prop(active_source, "type", expand=True)
+                
+                #
                 row_source_object = col_source_list.row()
                 if not is_source_valid(active_source):
                     row_source_object.alert = True
@@ -135,6 +141,7 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
                     search_property="objects",
                     text=""
                 )
+                row_source_type.enabled = not active_source.locked and not get_active_group(context).locked
                 row_source_object.enabled = not active_source.locked and not get_active_group(context).locked
             row_add_ops = col_source_list.row()
             op_add_active = row_add_ops.operator(operator="capture_transform_tools.capture_source_add", text="Add Active")

@@ -220,13 +220,3 @@ def is_group_settings_valid(group) -> bool:
                 return False
             return True
     return False 
-
-#
-#   Extra Visualization
-#
-def is_object_in_group(group, object):
-    pass
-def is_object_in_source(group, object):
-    pass
-def is_bone_in_element(group, bone):
-    pass
