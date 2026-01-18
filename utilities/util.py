@@ -137,12 +137,12 @@ def capture_element_bone(group, source, element):
     print("basis:\n", pose_bone.matrix_basis)
     # print("Offset: \n", offset_matrix)
 
-def apply_group(group):
+def apply_group(group, should_insert_keyframe: bool = True):
     for source in group.sources:
         if is_source_valid(source):
-            apply_source(group, source)
+            apply_source(group, source, should_insert_keyframe)
 
-def apply_source(group, source):
+def apply_source(group, source, should_insert_keyframe: bool = True):
     match source.type:
         case SourceType.OBJECT.name:
             source_object: bpy.types.Object = source.source_object
@@ -154,14 +154,33 @@ def apply_source(group, source):
             source_object.matrix_world = constraint_offset @ get_relative_matrix(group) @ global_matrix
             
             bpy.context.view_layer.update()
+            if should_insert_keyframe:
+                source_object.keyframe_insert(
+                    "location",
+                    index=-1,
+                    group="baked capture",
+                    keytype="KEYFRAME"
+                    )
+                source_object.keyframe_insert(
+                    "rotation_quaternion",
+                    index=-1,
+                    group="baked capture",
+                    keytype="KEYFRAME"
+                    )
+                source_object.keyframe_insert(
+                    "scale",
+                    index=-1,
+                    group="baked capture",
+                    keytype="KEYFRAME"
+                    )
 
         case SourceType.ARMATURE.name:
             for element in source.element_bones:
-                apply_element_bone(group, source, element)
+                apply_element_bone(group, source, element, should_insert_keyframe)
         case _:
             raise RuntimeError("Unknown SourceType")
 
-def apply_element(group, source, element):
+def apply_element(group, source, element, should_insert_keyframe: bool = False):
     """
     Take in any element and call the corresponding apply element function.
     """
@@ -169,9 +188,9 @@ def apply_element(group, source, element):
         case SourceType.OBJECT.name:
             raise RuntimeError("OBJECT has no element")
         case SourceType.ARMATURE.name:
-            apply_element_bone(group, source, element)
+            apply_element_bone(group, source, element, should_insert_keyframe)
 
-def apply_element_bone(group, source, element):
+def apply_element_bone(group, source, element, should_insert_keyframe: bool = False):
     source_object: bpy.types.Object = source.source_object
     pose_bone: bpy.types.PoseBone = source_object.pose.bones[element.name]
     global_matrix: Matrix = element.transformation
@@ -196,9 +215,25 @@ def apply_element_bone(group, source, element):
     #     local_pose: Matrix = pose_bone.bone.matrix_local.inverted_safe() @ arm_matrix
     #     local_constraint: Matrix = pose_bone.matrix_basis.inverted_safe() @ pose_bone.matrix
     #     pose_bone.matrix = local_constraint.inverted_safe() @ parent_delta @ local_pose
-
-
-
+    if should_insert_keyframe:
+        pose_bone.keyframe_insert(
+            "location",
+            index=-1,
+            group="baked capture",
+            keytype="KEYFRAME"
+            )
+        pose_bone.keyframe_insert(
+            "rotation_quaternion",
+            index=-1,
+            group="baked capture",
+            keytype="KEYFRAME"
+            )
+        pose_bone.keyframe_insert(
+            "scale",
+            index=-1,
+            group="baked capture",
+            keytype="KEYFRAME"
+            )
 
 def get_relative_matrix(group) -> Matrix:
     match group.capture_type:

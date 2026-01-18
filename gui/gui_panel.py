@@ -90,6 +90,7 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
         row_op_apply_bake.enabled = has_active_group(context) 
         op_apply = row_op_apply_bake.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply")
         op_apply.apply_scope = ApplyScope.GROUP.name
+        op_apply.should_insert_keyframe = False
         op_bake = row_op_apply_bake.operator(operator="capture_transform_tools.bake", icon="CON_ACTION", text="Bake")
         op_bake.bake_scope = BakeScope.GROUP.name
         # Right Column contains the actions
@@ -165,6 +166,7 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
             op_capture.capture_scope = CaptureScope.SOURCE.name
             op_apply = row_op_apply_bake.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply")
             op_apply.apply_scope = ApplyScope.SOURCE.name
+            op_apply.should_insert_keyframe = False
             op_bake = row_op_apply_bake.operator(operator="capture_transform_tools.bake", icon="CON_ACTION", text="Bake")
             op_bake.bake_scope = BakeScope.SOURCE.name
             row_op_capture.enabled =\
@@ -250,6 +252,7 @@ class CT_PT_capture_transform_tools(bpy.types.Panel):
                     op_capture.capture_scope = CaptureScope.ELEMENT.name
                     op_apply = row_op_apply_bake.operator(operator="capture_transform_tools.apply", icon="PASTEDOWN", text="Apply")
                     op_apply.apply_scope = ApplyScope.ELEMENT.name
+                    op_apply.should_insert_keyframe = False
                     op_bake = row_op_apply_bake.operator(operator="capture_transform_tools.bake", icon="CON_ACTION", text="Bake")
                     op_bake.bake_scope = BakeScope.ELEMENT.name
                     row_op_capture.enabled =\

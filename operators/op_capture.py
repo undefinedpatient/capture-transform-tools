@@ -14,7 +14,7 @@ class CT_OT_apply(bpy.types.Operator):
             (ApplyScope.ELEMENT.name, "Element", "Empty", "STICKY_UVS_DISABLE", 2)
         ]
     )
-    insert_keyframe: bpy.props.BoolProperty(
+    should_insert_keyframe: bpy.props.BoolProperty(
         name="Insert Keyframe",
         default=False
     )
@@ -31,7 +31,7 @@ class CT_OT_apply(bpy.types.Operator):
                 if len(active_group.sources) == 0:
                     self.report(type={"INFO"}, message="Empty Group")
                     return {"CANCELLED"}
-                apply_group(active_group)
+                apply_group(active_group, self.should_insert_keyframe)
             case ApplyScope.SOURCE.name:
                 if not has_active_source(context):
                     self.report(type={"INFO"}, message="No source selected!")
@@ -40,7 +40,7 @@ class CT_OT_apply(bpy.types.Operator):
                 if not is_source_valid(active_source):
                     self.report(type={"WARNING"}, message="Invalid source!")
                     return {"CANCELLED"}
-                apply_source(active_group, active_source)
+                apply_source(active_group, active_source, self.should_insert_keyframe)
 
             case ApplyScope.ELEMENT.name:
                 if not has_active_element(context):
@@ -48,7 +48,7 @@ class CT_OT_apply(bpy.types.Operator):
                     return {"CANCELLED"}
                 active_source = get_active_source(context)
                 active_element = get_active_element(context)
-                apply_element(active_group, active_source, active_element)
+                apply_element(active_group, active_source, active_element, self.should_insert_keyframe)
         return {"FINISHED"}
 
 class CT_OT_capture(bpy.types.Operator):

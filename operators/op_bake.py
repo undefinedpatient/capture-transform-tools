@@ -44,56 +44,29 @@ class CT_OT_bake(bpy.types.Operator):
 
     def execute(self, context):
         match self.bake_scope:
+            case BakeScope.SOURCE.name:
+                if not has_active_source(context):
+                    self.report(type={"WARNING"}, message="No Active Source!")
+                source = get_active_source(context)
+                group = get_active_group(context)
+                for frame in range(self.frame_start, self.frame_end, self.step):
+                    context.scene.frame_set(frame)
+                    apply_source(group, source, True)
+                if self.must_include_last_frame:
+                    context.scene.frame_set(self.frame_end)
+                    apply_source(group, source, True)
             case BakeScope.ELEMENT.name:
                 if not has_active_element(context):
                     self.report(type={"WARNING"}, message="No Active Element!")
                 element = get_active_element(context)
                 source = get_active_source(context)
-                source_object: bpy.types.Object = source.source_object
                 group = get_active_group(context)
-                pose_bone: bpy.types.PoseBone = source_object.pose.bones[element.name]
                 for frame in range(self.frame_start, self.frame_end, self.step):
                     context.scene.frame_set(frame)
-                    apply_element_bone(group, source, element)
-                    pose_bone.keyframe_insert(
-                        "location",
-                        index=-1,
-                        group="baked capture",
-                        keytype="KEYFRAME"
-                        )
-                    pose_bone.keyframe_insert(
-                        "rotation_quaternion",
-                        index=-1,
-                        group="baked capture",
-                        keytype="KEYFRAME"
-                        )
-                    pose_bone.keyframe_insert(
-                        "scale",
-                        index=-1,
-                        group="baked capture",
-                        keytype="KEYFRAME"
-                        )
+                    apply_element_bone(group, source, element, True)
                 if self.must_include_last_frame:
                     context.scene.frame_set(self.frame_end)
-                    apply_element_bone(group, source, element)
-                    pose_bone.keyframe_insert(
-                        "location",
-                        index=-1,
-                        group="baked capture",
-                        keytype="KEYFRAME"
-                        )
-                    pose_bone.keyframe_insert(
-                        "rotation_quaternion",
-                        index=-1,
-                        group="baked capture",
-                        keytype="KEYFRAME"
-                        )
-                    pose_bone.keyframe_insert(
-                        "scale",
-                        index=-1,
-                        group="baked capture",
-                        keytype="KEYFRAME"
-                        )
+                    apply_element_bone(group, source, element, True)
                     
 
 
@@ -112,6 +85,9 @@ class CT_OT_bake(bpy.types.Operator):
             title="Bake",
             width=200
             )
+
+
+
 
 classes = [
     CT_OT_bake,
