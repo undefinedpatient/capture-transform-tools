@@ -413,6 +413,27 @@ class CT_OT_capture_element_lock(bpy.types.Operator):
 
         return {"FINISHED"}
 
+class CT_OT_remove_duplicated_elements(bpy.types.Operator):
+    bl_idname = "capture_transform_tools.remove_duplicated_elements"
+    bl_label = "Remove Duplicated Elements"
+    bl_options = {"UNDO"}
+    bl_description = "Empty"
+
+    def execute(self, context):
+        source = get_active_source(context)
+        element_list = get_element_list_from_active_source(source)
+        i: int = len(element_list)-1
+        while i > 0:
+            checkee = element_list[i]
+            j: int = i - 1
+            while j > -1:
+                if element_list[j].name == checkee.name:
+                    element_list.remove(j)
+                j = j - 1
+            i = i - 1
+
+        return {"FINISHED"}
+
 _classes = [
     CT_OT_apply,
     CT_OT_capture,
@@ -424,7 +445,8 @@ _classes = [
     CT_OT_capture_element_remove,
     CT_OT_capture_group_lock,
     CT_OT_capture_source_lock,
-    CT_OT_capture_element_lock
+    CT_OT_capture_element_lock,
+    CT_OT_remove_duplicated_elements
 ]
 
 _register, _unregister = bpy.utils.register_classes_factory(_classes)

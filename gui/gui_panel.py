@@ -45,6 +45,8 @@ class CT_MT_element_manage(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.enabled = has_active_element(context) and not get_active_source(context).locked and not get_active_group(context).locked
+        op_remove_duplicated = layout.operator("capture_transform_tools.remove_duplicated_elements")
+        layout.separator(type="LINE")
         op_delete_unlocked = layout.operator("capture_transform_tools.capture_element_remove", icon="NONE", text="Delete All Unlocked elements")
         op_delete_unlocked.remove_all = True
 

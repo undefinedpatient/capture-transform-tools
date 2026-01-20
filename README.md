@@ -2,7 +2,7 @@
 This addon aims to extend beyond Blender `copy Global Transform` funtionality. Allowing user to store it in groups!
 
 # Status
-This addon is still under development, and will have lots of bugs.
+Mostly Completed, not yet stable.
 
 # Installation
 You can simply download this as zip file, and pull the zip file into your Blender application to install it.

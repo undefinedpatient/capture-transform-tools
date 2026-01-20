@@ -49,7 +49,7 @@ def get_active_element(context: bpy.types.Context):
         case _:
             raise RuntimeError("Unknown SourceType")
 
-def get_element_list_from_active_source(source):
+def get_element_list_from_active_source(source) -> list:
     match source.type:
         case SourceType.OBJECT.name:
             return [source.source_object]
